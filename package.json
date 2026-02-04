@@ -1,0 +1,17 @@
+{
+  "name": "nz-lms",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "dev": "pnpm -r dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "6.0.0-dev.20251210",
+    "zod": "4.3.5"
+  }
+}

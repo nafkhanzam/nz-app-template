@@ -1,0 +1,96 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nz-lms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-nz_lms}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: nz-lms-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: nz-lms-server
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-3000}:3000"
+    env_file:
+      - apps/server/.env
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # web:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/web/Dockerfile
+  #     args:
+  #       - ENV_FILE=${ENV_FILE:-}
+  #   container_name: nz-lms-web
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${WEB_PORT:-8080}:80"
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     - server
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  minio_data:

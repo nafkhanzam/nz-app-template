@@ -1,0 +1,61 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main.ts",
+  "types": "dist",
+  "scripts": {
+    "dev": "tsx watch src/main",
+    "build": "tsc -b",
+    "generate": "zen generate",
+    "db:push": "zen db push",
+    "db:seed": "tsx src/scripts/seed.ts",
+    "migrate:dev": "zen migrate dev",
+    "migrate:deploy": "zen migrate deploy",
+    "typecheck": "pnpm tsc --noEmit"
+  },
+  "zenstack": {
+    "schema": "./src/zenstack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.26.0",
+  "devDependencies": {
+    "@total-typescript/ts-reset": "0.6.1",
+    "@tsconfig/node22": "22.0.5",
+    "@types/bcrypt": "6.0.0",
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/js-yaml": "4.0.9",
+    "@types/jsonwebtoken": "9.0.10",
+    "@types/node": "24.10.2",
+    "@types/pg": "8.15.6",
+    "@types/qs": "6.14.0",
+    "@zenstackhq/cli": "3.2.1",
+    "@zenstackhq/tanstack-query": "3.2.1",
+    "csv-parse": "6.1.0",
+    "js-yaml": "4.1.1",
+    "typescript": "6.0.0-dev.20251210"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.952.0",
+    "@aws-sdk/s3-request-presigner": "^3.952.0",
+    "@trpc/server": "11.7.2",
+    "@zenstackhq/orm": "3.2.1",
+    "@zenstackhq/plugin-policy": "3.2.1",
+    "@zenstackhq/server": "3.2.1",
+    "axios": "1.13.2",
+    "bcrypt": "6.0.0",
+    "cors": "2.8.5",
+    "dotenv": "17.2.3",
+    "express": "5.2.1",
+    "jsonwebtoken": "9.0.3",
+    "kysely": "0.28.8",
+    "nanoid": "5.1.6",
+    "pg": "8.16.3",
+    "superjson": "2.2.6",
+    "zenstack-trpc": "0.1.20",
+    "zod": "4.1.13"
+  }
+}

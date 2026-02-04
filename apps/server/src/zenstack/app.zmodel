@@ -1,0 +1,14 @@
+import './core'
+
+model Post with Base {
+  userId   String
+  User     User    @relation(fields: [userId], references: [id])
+
+  content  String
+  imageKey String?
+  Image    File?   @relation(fields: [imageKey], references: [key])
+
+  @@allow('read', true)
+  @@allow('create,update', auth().id == userId && (Image == null || auth().id == Image.userId))
+  @@allow('delete', auth().id == userId)
+}

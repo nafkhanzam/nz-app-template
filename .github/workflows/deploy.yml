@@ -1,0 +1,38 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: self-hosted
+
+    defaults:
+      run:
+        working-directory: /home/nafkhanzam/kode/nz-lms
+
+    steps:
+      - name: Pull latest changes
+        run: git pull
+
+      # - name: Create .env files
+      #   run: |
+      #     echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
+      #     echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
+
+      - name: Build containers
+        run: docker compose -f docker-compose.server.yml build
+
+      - name: Run database migrations
+        run: docker compose -f docker-compose.server.yml run --rm server pnpm migrate:deploy
+
+      - name: Restart services
+        env:
+          SERVER_PORT: 41001
+        run: docker compose -f docker-compose.server.yml up -d --force-recreate
+
+      - name: Clean up old images
+        run: docker image prune -f

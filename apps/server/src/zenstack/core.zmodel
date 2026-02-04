@@ -1,0 +1,88 @@
+import './app'
+
+type ID {
+  id String @id @default(nanoid())
+}
+
+type Timestamps {
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+type Base with ID, Timestamps {
+}
+
+type AuthInfo {
+  id       String
+  username String
+  role     Role
+
+  @@auth
+}
+
+enum Role {
+  ADMIN
+  DOSEN
+  STUDENT
+}
+
+enum FileStatus {
+  PENDING
+  UPLOADED
+  FAILED
+}
+
+model User with Base {
+  username     String         @unique
+  passwordHash String
+  name         String
+  email        String?
+  role         Role
+
+  issuer       String?
+  userInfo     Json?
+
+  RefreshToken RefreshToken[]
+  File         File[]
+  Post         Post[]
+
+  @@allow('read', true)
+  @@allow('all', auth().id == id)
+}
+
+model File with Timestamps {
+  key              String     @id
+
+  userId           String
+  User             User       @relation(fields: [userId], references: [id])
+
+  originalFilename String
+  filename         String
+  contentType      String
+  size             Int?
+  status           FileStatus
+
+  Post             Post[]
+
+  @@allow('all', auth().id == userId)
+}
+
+model AuditLog {
+  timestamp DateTime @default(now())
+  cuid      String   @default(cuid())
+
+  action    String
+  data      Json
+
+  @@id([timestamp, cuid])
+  @@deny('all', true)
+}
+
+model RefreshToken with Base {
+  userId  String
+  User    User    @relation(fields: [userId], references: [id])
+
+  revoked Boolean
+
+  @@deny('all', true)
+}

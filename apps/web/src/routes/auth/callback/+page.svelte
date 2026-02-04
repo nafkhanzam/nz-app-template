@@ -1,0 +1,60 @@
+<script lang="ts">
+  import { toast } from "$lib";
+  import { token, refresh } from "$lib/stores/token.svelte";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/state";
+  import { trpc_ } from "$lib/client.svelte";
+  import { onMount } from "svelte";
+
+  let isLoading = $state(true);
+  let error = $state("");
+
+  onMount(async () => {
+    try {
+      // Get the authorization code from URL parameters
+      const code = page.url.searchParams.get("code");
+
+      if (!code) {
+        throw new Error("No authorization code received");
+      }
+
+      // Exchange the code for tokens
+      const res = await trpc_.oidcHandleCallback.mutate({ code });
+
+      // Store tokens
+      token.value = res.accessToken;
+      refresh.value = res.refreshToken;
+
+      toast.success("Successfully logged in with SSO!");
+
+      // Redirect to home or previous page
+      goto("/");
+    } catch (err: any) {
+      console.error("OIDC callback error:", err);
+      error = err.message || "Failed to complete SSO login";
+      toast.error(error);
+      isLoading = false;
+    }
+  });
+</script>
+
+<div class="min-h-screen flex items-center justify-center bg-base-200">
+  <div class="card w-full max-w-md bg-base-100 shadow-2xl">
+    <div class="card-body text-center">
+      {#if isLoading}
+        <div class="flex flex-col items-center gap-4">
+          <span class="loading loading-spinner loading-lg"></span>
+          <h2 class="text-2xl font-bold">Completing sign in...</h2>
+          <p class="text-base-content/60">Please wait while we verify your credentials</p>
+        </div>
+      {:else if error}
+        <div class="flex flex-col items-center gap-4">
+          <div class="text-error text-5xl">✕</div>
+          <h2 class="text-2xl font-bold">Sign in failed</h2>
+          <p class="text-base-content/60">{error}</p>
+          <a href="/login" class="btn btn-primary mt-4">Back to Login</a>
+        </div>
+      {/if}
+    </div>
+  </div>
+</div>
