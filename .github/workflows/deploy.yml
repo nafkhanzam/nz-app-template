@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - apps/server/**
+      - docker-compose.server.yml
 
 jobs:
   deploy:
@@ -12,16 +15,16 @@ jobs:
 
     defaults:
       run:
-        working-directory: /home/nafkhanzam/kode/nz-lms
+        working-directory: /home/nafkhanzam/kode/nz-app-template
 
     steps:
       - name: Pull latest changes
         run: git pull
 
-      # - name: Create .env files
-      #   run: |
-      #     echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
-      #     echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
+      - name: Create .env files
+        run: |
+          echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
+          echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
 
       - name: Build containers
         run: docker compose -f docker-compose.server.yml build
@@ -31,7 +34,7 @@ jobs:
 
       - name: Restart services
         env:
-          SERVER_PORT: 41001
+          SERVER_PORT: 40001
         run: docker compose -f docker-compose.server.yml up -d --force-recreate
 
       - name: Clean up old images

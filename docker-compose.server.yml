@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-    container_name: nz-lms-server
+    container_name: nz-app-template-server
     restart: unless-stopped
     ports:
       - "${SERVER_PORT:-41001}:3000"

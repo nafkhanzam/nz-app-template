@@ -1,12 +1,12 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: nz-lms-postgres
+    container_name: nz-app-template-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-nz_lms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nz-app-template-password-default}
+      POSTGRES_DB: ${POSTGRES_DB:-nz-app-template}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -21,12 +21,12 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: nz-lms-minio
+    container_name: nz-app-template-minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-nz-app-template-password-default}
     ports:
       - "${MINIO_PORT:-9000}:9000"
       - "${MINIO_CONSOLE_PORT:-9001}:9001"
@@ -44,7 +44,7 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-    container_name: nz-lms-server
+    container_name: nz-app-template-server
     restart: unless-stopped
     ports:
       - "${SERVER_PORT:-3000}:3000"
@@ -78,7 +78,7 @@ services:
   #     dockerfile: apps/web/Dockerfile
   #     args:
   #       - ENV_FILE=${ENV_FILE:-}
-  #   container_name: nz-lms-web
+  #   container_name: nz-app-template-web
   #   restart: unless-stopped
   #   ports:
   #     - "${WEB_PORT:-8080}:80"
