@@ -40,52 +40,7 @@ services:
       timeout: 5s
       retries: 5
 
-  server:
-    build:
-      context: .
-      dockerfile: apps/server/Dockerfile
-    container_name: nz-app-template-server
-    restart: unless-stopped
-    ports:
-      - "${SERVER_PORT:-3000}:3000"
-    env_file:
-      - apps/server/.env
-    networks:
-      - app-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3000/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # web:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/web/Dockerfile
-  #     args:
-  #       - ENV_FILE=${ENV_FILE:-}
-  #   container_name: nz-app-template-web
-  #   restart: unless-stopped
-  #   ports:
-  #     - "${WEB_PORT:-8080}:80"
-  #   networks:
-  #     - app-network
-  #   depends_on:
-  #     - server
+  # TODO: Add authentik & typst local server
 
 networks:
   app-network:

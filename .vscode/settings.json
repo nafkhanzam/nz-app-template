@@ -1,11 +1,4 @@
 {
-  "typescript.tsserver.maxTsServerMemory": 4096,
-  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
-  "typescript.tsserver.enableRegionDiagnostics": false,
-  "typescript.tsserver.web.projectWideIntellisense.enabled": false,
-  "typescript.tsserver.web.typeAcquisition.enabled": false,
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
   "svelte.plugin.svelte.compilerWarnings": {
     "a11y-accesskey": "ignore",
     "a11y-aria-activedescendant-has-tabindex": "ignore",
