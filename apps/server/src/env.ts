@@ -34,8 +34,8 @@ const envSchema = z.object({
   OIDC_STATE: z.string().optional(),
 
   // Typst
-  TYPST_API_ENDPOINT: z.url().default("https://typst.nafkhanzam.com"),
-  TYPST_API_SECRET_TOKEN: z.string(),
+  TYPST_API_ENDPOINT: z.url().optional(),
+  TYPST_API_SECRET_TOKEN: z.string().optional(),
 });
 
 // Parse and validate
