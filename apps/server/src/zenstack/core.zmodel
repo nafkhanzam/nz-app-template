@@ -64,6 +64,7 @@ model File with Timestamps {
 
   Post             Post[]
 
+  @@allow('read', true)
   @@allow('all', auth().id == userId)
 }
 

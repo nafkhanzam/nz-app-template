@@ -50,7 +50,7 @@
       queries: {
         enabled: browser,
         throwOnError: (error) => !(error instanceof AuthError),
-        retry: (failureCount, error) => !(error instanceof AuthError),
+        retry: (failureCount, error) => failureCount < 3 && !(error instanceof AuthError),
         refetchOnMount: "always",
         refetchOnReconnect: true,
       },

@@ -3,7 +3,7 @@
   import { client } from "$lib/client.svelte";
   import Query from "$lib/components/Query.svelte";
   import { user } from "$lib/stores/user.svelte";
-  import {toast} from "$lib";
+  import { toast } from "$lib";
   import Container from "$lib/components/Container.svelte";
 
   const postsQ = client.post.useFindMany(() => ({
@@ -22,6 +22,8 @@
   let isSubmitting = $state(false);
 
   const postCreateQ = client.post.useCreate();
+  const postUpdateQ = client.post.useUpdate();
+  const postDeleteQ = client.post.useDelete();
 
   const onPostSubmit = async () => {
     if (!postContent.trim()) {
@@ -69,6 +71,58 @@
     const target = event.target as HTMLInputElement;
     if (target.files && target.files.length > 0) {
       postImage = target.files[0];
+    }
+  };
+
+  // Edit state
+  let editingPostId = $state<string | null>(null);
+  let editContent = $state("");
+  let isUpdating = $state(false);
+
+  const startEdit = (postId: string, content: string) => {
+    editingPostId = postId;
+    editContent = content;
+  };
+
+  const cancelEdit = () => {
+    editingPostId = null;
+    editContent = "";
+  };
+
+  const onPostUpdate = async (postId: string) => {
+    if (!editContent.trim()) {
+      toast.error("Post content is required");
+      return;
+    }
+
+    isUpdating = true;
+    try {
+      await postUpdateQ.mutateAsync({
+        where: { id: postId },
+        data: { content: editContent },
+      });
+      editingPostId = null;
+      editContent = "";
+      toast.success("Post updated successfully!");
+      postsQ.refetch();
+    } catch (error) {
+      console.error("Error updating post:", error);
+      toast.error("Failed to update post");
+    } finally {
+      isUpdating = false;
+    }
+  };
+
+  const onPostDelete = async (postId: string) => {
+    if (!confirm("Are you sure you want to delete this post?")) return;
+
+    try {
+      await postDeleteQ.mutateAsync({ where: { id: postId } });
+      toast.success("Post deleted successfully!");
+      postsQ.refetch();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error("Failed to delete post");
     }
   };
 </script>
@@ -133,15 +187,55 @@
                   <span class="text-sm text-gray-400">
                     {new Date(post.createdAt).toLocaleDateString()}
                   </span>
+                  {#if post.userId === user().id || true}
+                    <div class="ml-auto flex gap-2">
+                      <button
+                        class="btn btn-sm btn-ghost"
+                        onclick={() => startEdit(post.id, post.content)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        class="btn btn-sm btn-ghost text-error"
+                        onclick={() => onPostDelete(post.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  {/if}
                 </div>
-                <p class="whitespace-pre-wrap">{post.content}</p>
+
+                {#if editingPostId === post.id}
+                  <div class="space-y-2">
+                    <textarea
+                      class="textarea textarea-bordered w-full"
+                      bind:value={editContent}
+                      rows="3"
+                    ></textarea>
+                    <div class="flex gap-2 justify-end">
+                      <button
+                        class="btn btn-sm btn-ghost"
+                        onclick={cancelEdit}
+                        disabled={isUpdating}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        class="btn btn-sm btn-primary"
+                        onclick={() => onPostUpdate(post.id)}
+                        disabled={isUpdating || !editContent.trim()}
+                      >
+                        {isUpdating ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                {:else}
+                  <p class="whitespace-pre-wrap">{post.content}</p>
+                {/if}
+
                 {#if post.Image}
                   <figure class="mt-4">
-                    <img
-                      src={getFileUrl(post.Image.key)}
-                      alt="Post"
-                      class="rounded-lg max-w-2xl h-auto"
-                    />
+                    <img src={getFileUrl(post.Image.key)} alt="Post" class="rounded-lg w-sm h-sm" />
                   </figure>
                 {/if}
               </div>
