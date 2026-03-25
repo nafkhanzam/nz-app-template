@@ -3,21 +3,13 @@
   import Icon from "@iconify/svelte";
   import { constants } from "../../../_/constants";
 
-  const {brandName} = constants
+  const { brandName } = constants;
 
   const currentYear = new Date().getFullYear();
 
-  const quickLinks = [
-    { label: "Home", href: resolve("/") },
-    { label: "Courses", href: resolve("/courses") },
-    { label: "Important Links", href: resolve("/links") },
-  ];
+  const quickLinks = [{ label: "Home", href: resolve("/") }];
 
-  const resourceLinks = [
-    { label: "ITS Website", href: "https://www.its.ac.id" },
-    { label: "ITS Career Center", href: "https://www.its.ac.id/careers" },
-    { label: "Informatika ITS", href: "https://www.its.ac.id/informatika" },
-  ];
+  const resourceLinks = [{ label: "Nafkhanzam Website", href: "https://www.nafkhanzam.com" }];
 </script>
 
 <footer class="bg-neutral">
@@ -41,8 +33,7 @@
     <nav class="md:col-span-2">
       <h6 class="footer-title">About</h6>
       <p class="max-w-md">
-        {brandName} is a monitoring system for student internship and enrichment programs at the Informatics
-        Department, ITS.
+        {brandName} is a nafkhanzam's template application. This footer needs to be updated.
       </p>
     </nav>
   </div>
@@ -56,17 +47,17 @@
       <p>
         <span class="font-semibold">{brandName}</span>
         <br />
-        © {currentYear} Department of Informatics, ITS. All rights reserved.
+        © {currentYear} All rights reserved.
       </p>
     </aside>
     <nav>
       <div class="flex gap-4">
         <a
-          href="https://www.its.ac.id"
+          href="https://www.nafkhanzam.com"
           target="_blank"
           rel="noopener noreferrer"
           class="link link-hover"
-          aria-label="ITS Website"
+          aria-label="Nafkhanzam Website"
         >
           <Icon icon="heroicons:globe-alt" class="h-6 w-6" />
         </a>

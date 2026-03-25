@@ -12,14 +12,11 @@
   // Configuration
   const brandHref = resolve("/");
 
-  const isAdmin = $derived(user().role === "ADMIN");
-  const isDosen = $derived(user().role === "DOSEN");
-
   const navItems = $derived<NavItem[]>([]);
 
   // Account dropdown items
   const accountDropdownItems: NavSingle[] = [
-    { _type: "single", label: "Profile", href: resolve("/profile") },
+    { _type: "single", label: "Profile", href: resolve("/profile/") },
     // { _type: "single", label: "Settings", href: resolve("/settings") },
     { _type: "single", label: "Logout", href: resolve("/logout") },
   ];
@@ -110,7 +107,7 @@
           {/if}
           <div class="hidden sm:inline">
             <span>{user().name}</span>
-            {#if user().role !== "STUDENT"}
+            {#if user().role !== "USER"}
               <span>({user().role})</span>
             {/if}
           </div>

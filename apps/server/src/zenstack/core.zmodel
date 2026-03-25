@@ -22,8 +22,7 @@ type AuthInfo {
 
 enum Role {
   ADMIN
-  DOSEN
-  STUDENT
+  USER
 }
 
 enum FileStatus {
@@ -33,18 +32,19 @@ enum FileStatus {
 }
 
 model User with Base {
-  username     String         @unique
-  passwordHash String
-  name         String
-  email        String?
-  role         Role
+  username      String         @unique
+  passwordHash  String
+  name          String
+  email         String?
+  role          Role
 
-  issuer       String?
-  userInfo     Json?
+  oidc_issuer   String?
+  oidc_userInfo Json?
+  oidc_sub      String?
 
-  RefreshToken RefreshToken[]
-  File         File[]
-  Post         Post[]
+  RefreshToken  RefreshToken[]
+  File          File[]
+  Post          Post[]
 
   @@allow('read', true)
   @@allow('all', auth().id == id)

@@ -56,14 +56,19 @@ export class SchemaType implements SchemaDef {
                     name: "role",
                     type: "Role"
                 },
-                issuer: {
-                    name: "issuer",
+                oidc_issuer: {
+                    name: "oidc_issuer",
                     type: "String",
                     optional: true
                 },
-                userInfo: {
-                    name: "userInfo",
+                oidc_userInfo: {
+                    name: "oidc_userInfo",
                     type: "Json",
+                    optional: true
+                },
+                oidc_sub: {
+                    name: "oidc_sub",
+                    type: "String",
                     optional: true
                 },
                 RefreshToken: {
@@ -392,8 +397,7 @@ export class SchemaType implements SchemaDef {
             name: "Role",
             values: {
                 ADMIN: "ADMIN",
-                DOSEN: "DOSEN",
-                STUDENT: "STUDENT"
+                USER: "USER"
             }
         },
         FileStatus: {

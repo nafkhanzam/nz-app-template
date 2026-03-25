@@ -6,7 +6,7 @@ export const jwtPayloadV = z.object({
   name: z.string(),
   email: z.string().optional(),
   image: z.string().optional(),
-  role: z.enum(["ADMIN", "DOSEN", "STUDENT"]),
+  role: z.enum(["ADMIN", "USER"]),
 });
 export type JWTPayload = z.infer<typeof jwtPayloadV>;
 

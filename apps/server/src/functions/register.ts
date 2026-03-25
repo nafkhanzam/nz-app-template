@@ -32,7 +32,7 @@ export const register = t.procedure
         name: input.name,
         username: input.username,
         passwordHash,
-        role: Role.STUDENT,
+        role: Role.USER,
       },
     });
 

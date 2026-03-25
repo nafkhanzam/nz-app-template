@@ -14,6 +14,11 @@ interface OIDCTokenResponse {
   expires_in?: number;
 }
 
+export interface SsoGroup {
+  group_id: string;
+  group_name: string;
+}
+
 interface OIDCUserInfo {
   sub: string;
   name?: string;
@@ -74,32 +79,6 @@ async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
     });
   }
 }
-
-export interface SsoGroup {
-  group_id: string;
-  group_name: string;
-}
-
-export const mapSsoGroups = (groups: SsoGroup[] | undefined): Role => {
-  if (!groups || groups.length === 0) {
-    return "STUDENT";
-  }
-
-  const isDosen = groups.some((g) => g.group_name.toLowerCase() === "dosen");
-  if (isDosen) {
-    return "DOSEN";
-  }
-
-  const isMahasiswa = groups.some(
-    (g) => g.group_name.toLowerCase() === "mahasiswa",
-  );
-  if (isMahasiswa) {
-    return "STUDENT";
-  }
-
-  // Default Role
-  return "STUDENT";
-};
 
 /**
  * Initiate OIDC login flow
@@ -193,20 +172,17 @@ export const oidcHandleCallback = t.procedure
       });
 
       // Create or update user in database
-      const username =
-        userInfo.reg_id ||
-        userInfo.preferred_username ||
-        userInfo.email ||
-        userInfo.sub;
-      const name = userInfo.name || username;
+      const oidc_sub = userInfo.sub;
+      const username = userInfo.preferred_username ?? oidc_sub;
+      const name = userInfo.name ?? username;
       const email = userInfo.email;
-      const role = mapSsoGroups(userInfo.group);
+      const role = Role.USER;
 
       let user = await db.user.findFirst({
         where: {
           OR: [
             {
-              username,
+              oidc_sub,
             },
             ...renderIf(email, [{ email }], []),
           ],
@@ -222,8 +198,9 @@ export const oidcHandleCallback = t.procedure
             email,
             passwordHash: "", // OIDC users don't need password
             role,
-            issuer: env.OIDC_ISSUER, // Store OIDC issuer
-            userInfo: userInfoJson,
+            oidc_issuer: env.OIDC_ISSUER, // Store OIDC issuer
+            oidc_userInfo: userInfoJson,
+            oidc_sub,
           },
         });
       } else {
@@ -234,8 +211,9 @@ export const oidcHandleCallback = t.procedure
             username,
             name,
             email,
-            issuer: env.OIDC_ISSUER,
-            userInfo: userInfoJson,
+            oidc_issuer: env.OIDC_ISSUER, // Store OIDC issuer
+            oidc_userInfo: userInfoJson,
+            oidc_sub,
           },
         });
       }
@@ -294,7 +272,7 @@ export const oidcUserInfo = t.procedure.query(async ({ ctx: { db, user } }) => {
 
   const userData = await db.user.findUnique({
     where: { id: user.id },
-    select: { userInfo: true },
+    select: { oidc_userInfo: true },
   });
 
   if (!userData) {
@@ -304,5 +282,5 @@ export const oidcUserInfo = t.procedure.query(async ({ ctx: { db, user } }) => {
     });
   }
 
-  return userData.userInfo;
+  return userData.oidc_userInfo;
 });

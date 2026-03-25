@@ -9,9 +9,7 @@
     switch (role) {
       case "ADMIN":
         return "badge-error";
-      case "DOSEN":
-        return "badge-warning";
-      case "STUDENT":
+      case "USER":
         return "badge-primary";
       default:
         return "badge-ghost";
@@ -21,11 +19,9 @@
   function getRoleLabel(role: string) {
     switch (role) {
       case "ADMIN":
-        return "Administrator";
-      case "DOSEN":
-        return "Dosen";
-      case "STUDENT":
-        return "Mahasiswa";
+        return "Admin";
+      case "USER":
+        return "User";
       default:
         return role;
     }
