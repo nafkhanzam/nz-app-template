@@ -8,6 +8,7 @@
     "dev": "tsx watch src/main",
     "build": "tsc -b",
     "generate": "zen generate",
+    "db:studio": "zen studio",
     "db:push": "zen db push",
     "db:seed": "tsx src/scripts/seed.ts",
     "migrate:dev": "zen migrate dev",
