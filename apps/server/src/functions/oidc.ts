@@ -178,14 +178,9 @@ export const oidcHandleCallback = t.procedure
       const email = userInfo.email;
       const role = Role.USER;
 
-      let user = await db.user.findFirst({
+      let user = await db.user.findUnique({
         where: {
-          OR: [
-            {
-              oidc_sub,
-            },
-            ...renderIf(email, [{ email }], []),
-          ],
+          oidc_sub,
         },
       });
 

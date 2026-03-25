@@ -69,7 +69,9 @@ export class SchemaType implements SchemaDef {
                 oidc_sub: {
                     name: "oidc_sub",
                     type: "String",
-                    optional: true
+                    unique: true,
+                    optional: true,
+                    attributes: [{ name: "@unique" }] as readonly AttributeApplication[]
                 },
                 RefreshToken: {
                     name: "RefreshToken",
@@ -97,7 +99,8 @@ export class SchemaType implements SchemaDef {
             idFields: ["id"],
             uniqueFields: {
                 id: { type: "String" },
-                username: { type: "String" }
+                username: { type: "String" },
+                oidc_sub: { type: "String" }
             }
         },
         File: {
