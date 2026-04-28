@@ -39,5 +39,5 @@ jobs:
           SERVER_PORT: 40001
         run: docker compose -f docker-compose.server.yml up -d --force-recreate
 
-      - name: Clean up old images
-        run: docker image prune -f
+      # - name: Clean up old images
+      #   run: docker image prune -f
