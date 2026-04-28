@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - apps/server/**
+      - .github/workflows/**
       - docker-compose.server.yml
 
 jobs:
@@ -21,16 +22,17 @@ jobs:
       - name: Pull latest changes
         run: git pull
 
-      - name: Create .env files
-        run: |
-          echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
-          echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
+      # - name: Create .env files
+      #   run: |
+      #     echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
+      #     echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
 
       - name: Build containers
         run: docker compose -f docker-compose.server.yml build
 
       - name: Run database migrations
-        run: docker compose -f docker-compose.server.yml run --rm server pnpm migrate:deploy
+        run: docker compose -f docker-compose.server.yml run --rm server pnpm
+          migrate:deploy
 
       - name: Restart services
         env:
