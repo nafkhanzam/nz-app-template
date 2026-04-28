@@ -12,7 +12,7 @@
     "moduleResolution": "NodeNext",
     "module": "NodeNext",
     "target": "esnext",
-    "rootDir": ".",
+    "rootDir": "src",
     "outDir": "dist",
     "disableSourceOfProjectReferenceRedirect": true
   }
