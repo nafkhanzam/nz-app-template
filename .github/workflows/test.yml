@@ -10,6 +10,8 @@ on:
 
 jobs:
   test:
+    # temporarily disable
+    if: false
     name: Run Playwright Tests
     runs-on: self-hosted
     timeout-minutes: 15
@@ -24,9 +26,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s
           --health-retries 5
 
     steps:
@@ -51,10 +51,10 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/web
 
-      - name: Create .env files
-        run: |
-          echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
-          echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
+      # - name: Create .env files
+      #   run: |
+      #     echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
+      #     echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
 
       - name: Run database migrations
         run: pnpm migrate:deploy

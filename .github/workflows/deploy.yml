@@ -11,6 +11,8 @@ on:
 
 jobs:
   deploy:
+    # temporarily disable
+    if: false
     name: Deploy to VPS
     runs-on: self-hosted
 
@@ -38,6 +40,5 @@ jobs:
         env:
           SERVER_PORT: 40001
         run: docker compose -f docker-compose.server.yml up -d --force-recreate
-
       # - name: Clean up old images
       #   run: docker image prune -f
