@@ -2,9 +2,15 @@
   import { uploadFile, getFileUrl } from "$lib";
   import { client } from "$lib/client.svelte";
   import Query from "$lib/components/Query.svelte";
+  import Pagination from "$lib/components/Pagination.svelte";
+  import { usePagination } from "$lib/stores/pagination.svelte";
   import { user } from "$lib/stores/user.svelte";
   import { toast } from "$lib";
   import Container from "$lib/components/Container.svelte";
+
+  const pagination = usePagination(10);
+
+  const postsCountQ = client.post.useCount(() => ({ where: {} }));
 
   const postsQ = client.post.useFindMany(() => ({
     where: {},
@@ -12,9 +18,9 @@
       User: true,
       Image: true,
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: { createdAt: "desc" },
+    skip: pagination.skip,
+    take: pagination.take,
   }));
 
   let postContent = $state("");
@@ -242,6 +248,7 @@
             </div>
           {/each}
         {/if}
+        <Pagination {pagination} totalItems={postsCountQ.data ?? 0} pageSizeOptions={[5, 10, 25]} />
       </div>
     {/snippet}
   </Query>
