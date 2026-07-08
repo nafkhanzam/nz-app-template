@@ -27,17 +27,17 @@ importers:
         specifier: 11.15.0
         version: 11.15.0(typescript@6.0.2)
       '@zenstackhq/orm':
-        specifier: 3.5.1
-        version: 3.5.1(pg@8.20.0)(zod@4.3.6)
+        specifier: 3.8.3
+        version: 3.8.3(pg@8.20.0)(zod@4.3.6)
       '@zenstackhq/plugin-policy':
-        specifier: 3.5.1
-        version: 3.5.1(kysely@0.28.14)(pg@8.20.0)(zod@4.3.6)
+        specifier: 3.8.3
+        version: 3.8.3(kysely@0.28.14)(pg@8.20.0)(zod@4.3.6)
       '@zenstackhq/schema':
-        specifier: 3.5.1
-        version: 3.5.1
+        specifier: 3.8.3
+        version: 3.8.3
       '@zenstackhq/server':
-        specifier: 3.5.1
-        version: 3.5.1(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(express@5.2.1)(pg@8.20.0)(zod@4.3.6)
+        specifier: 3.8.3
+        version: 3.8.3(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(express@5.2.1)(pg@8.20.0)(zod@4.3.6)
       axios:
         specifier: 1.13.6
         version: 1.13.6
@@ -70,7 +70,7 @@ importers:
         version: 2.2.6
       zenstack-trpc:
         specifier: 0.2.1
-        version: 0.2.1(@trpc/server@11.15.0(typescript@6.0.2))(@zenstackhq/orm@3.5.1(pg@8.20.0)(zod@4.3.6))(@zenstackhq/zod@3.5.1(zod@4.3.6))(zod@4.3.6)
+        version: 0.2.1(@trpc/server@11.15.0(typescript@6.0.2))(@zenstackhq/orm@3.8.3(pg@8.20.0)(zod@4.3.6))(@zenstackhq/zod@3.8.3(zod@4.3.6))(zod@4.3.6)
       zod:
         specifier: 4.3.6
         version: 4.3.6
@@ -106,11 +106,11 @@ importers:
         specifier: 6.15.0
         version: 6.15.0
       '@zenstackhq/cli':
-        specifier: 3.5.1
-        version: 3.5.1(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(pg@8.20.0)(typescript@6.0.2)
+        specifier: 3.8.3
+        version: 3.8.3(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(kysely@0.28.14)(pg@8.20.0)(typescript@6.0.2)
       '@zenstackhq/tanstack-query':
-        specifier: 3.5.1
-        version: 3.5.1(@tanstack/svelte-query@6.1.10(svelte@5.55.0))
+        specifier: 3.8.3
+        version: 3.8.3(@tanstack/svelte-query@6.1.10(svelte@5.55.0))(pg@8.20.0)(zod@4.3.6)
       csv-parse:
         specifier: 6.2.1
         version: 6.2.1
@@ -163,11 +163,11 @@ importers:
         specifier: 11.15.0
         version: 11.15.0(typescript@6.0.2)
       '@zenstackhq/orm':
-        specifier: 3.5.1
-        version: 3.5.1(pg@8.20.0)(zod@4.3.6)
+        specifier: 3.8.3
+        version: 3.8.3(pg@8.20.0)(zod@4.3.6)
       '@zenstackhq/tanstack-query':
-        specifier: 3.5.1
-        version: 3.5.1(@tanstack/svelte-query@6.1.10(svelte@5.55.0))
+        specifier: 3.8.3
+        version: 3.8.3(@tanstack/svelte-query@6.1.10(svelte@5.55.0))(pg@8.20.0)(zod@4.3.6)
       buffer:
         specifier: 6.0.3
         version: 6.0.3
@@ -218,7 +218,7 @@ importers:
         version: 0.25.0(rollup@4.55.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0))
       zenstack-trpc:
         specifier: 0.2.1
-        version: 0.2.1(@trpc/server@11.15.0(typescript@6.0.2))(@zenstackhq/orm@3.5.1(pg@8.20.0)(zod@4.3.6))(@zenstackhq/zod@3.5.1(zod@4.3.6))(zod@4.3.6)
+        version: 0.2.1(@trpc/server@11.15.0(typescript@6.0.2))(@zenstackhq/orm@3.8.3(pg@8.20.0)(zod@4.3.6))(@zenstackhq/zod@3.8.3(zod@4.3.6))(zod@4.3.6)
       zod:
         specifier: 4.3.6
         version: 4.3.6
@@ -392,20 +392,20 @@ packages:
     resolution: {integrity: sha512-iY8yvjE0y651BixKNPgmv1WrQc+GZ142sb0z4gYnChDDY2YqI4P/jsSopBWrKfAt7LOJAkOXt7rC/hms+WclQQ==}
     engines: {node: '>=18.0.0'}
 
-  '@chevrotain/cst-dts-gen@11.0.3':
-    resolution: {integrity: sha512-BvIKpRLeS/8UbfxXxgC33xOumsacaeCKAjAeLyOn7Pcp95HiRbrpl14S+9vaZLolnbssPIUuiUd8IvgkRyt6NQ==}
+  '@chevrotain/cst-dts-gen@12.0.0':
+    resolution: {integrity: sha512-fSL4KXjTl7cDgf0B5Rip9Q05BOrYvkJV/RrBTE/bKDN096E4hN/ySpcBK5B24T76dlQ2i32Zc3PAE27jFnFrKg==}
 
-  '@chevrotain/gast@11.0.3':
-    resolution: {integrity: sha512-+qNfcoNk70PyS/uxmj3li5NiECO+2YKZZQMbmjTqRI3Qchu8Hig/Q9vgkHpI3alNjr7M+a2St5pw5w5F6NL5/Q==}
+  '@chevrotain/gast@12.0.0':
+    resolution: {integrity: sha512-1ne/m3XsIT8aEdrvT33so0GUC+wkctpUPK6zU9IlOyJLUbR0rg4G7ZiApiJbggpgPir9ERy3FRjT6T7lpgetnQ==}
 
-  '@chevrotain/regexp-to-ast@11.0.3':
-    resolution: {integrity: sha512-1fMHaBZxLFvWI067AVbGJav1eRY7N8DDvYCTwGBiE/ytKBgP8azTdgyrKyWZ9Mfh09eHWb5PgTSO8wi7U824RA==}
+  '@chevrotain/regexp-to-ast@12.0.0':
+    resolution: {integrity: sha512-p+EW9MaJwgaHguhoqwOtx/FwuGr+DnNn857sXWOi/mClXIkPGl3rn7hGNWvo31HA3vyeQxjqe+H36yZJwYU8cA==}
 
-  '@chevrotain/types@11.0.3':
-    resolution: {integrity: sha512-gsiM3G8b58kZC2HaWR50gu6Y1440cHiJ+i3JUvcp/35JchYejb2+5MVeJK0iKThYpAa/P2PYFV4hoi44HD+aHQ==}
+  '@chevrotain/types@12.0.0':
+    resolution: {integrity: sha512-S+04vjFQKeuYw0/eW3U52LkAHQsB1ASxsPGsLPUyQgrZ2iNNibQrsidruDzjEX2JYfespXMG0eZmXlhA6z7nWA==}
 
-  '@chevrotain/utils@11.0.3':
-    resolution: {integrity: sha512-YslZMgtJUyuMbZ+aKvfF3x1f5liK4mWNxghFRv7jqRR9C3R3fAOGTTKvxXDa2Y1s9zSbcpuO0cAxDYsc9SrXoQ==}
+  '@chevrotain/utils@12.0.0':
+    resolution: {integrity: sha512-lB59uJoaGIfOOL9knQqQRfhl9g7x8/wqFkp13zTdkRu1huG9kg6IJs1O8hqj9rs6h7orGxHJUKb+mX3rPbWGhA==}
 
   '@emnapi/core@1.9.1':
     resolution: {integrity: sha512-mukuNALVsoix/w1BJwFzwXBN/dHeejQtuVzcDsfOEsdpCumXb/E9j8w11h5S54tT1xhifGfbbSm/ICrObRb3KA==}
@@ -1352,8 +1352,8 @@ packages:
     resolution: {integrity: sha512-/iZM6FnM4tnx9csuTxspMW4BOSegshwX5oBDznJ7S4WggL7Vczz5d2W11ecc4vRrQMQHXRSxzrCsyG5EsPPTbA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@zenstackhq/cli@3.5.1':
-    resolution: {integrity: sha512-DDXDbtTl2d0tqqMtVjtha1IN7UNhUUfyOtbFOXa9fj3NOiToyemcYd0dhNt5K/jMmMI8QAKl0I87zNFH/51Eyg==}
+  '@zenstackhq/cli@3.8.3':
+    resolution: {integrity: sha512-NCjvGKiL6+COOjQtlR9uSvI1dbQZh8Vy94RbOWF8eCUxmcAv9r87trCt5aldu4zqZyNm6I+ZpuruO2QbAWOi2w==}
     engines: {node: '>=20'}
     hasBin: true
     peerDependencies:
@@ -1368,17 +1368,17 @@ packages:
       pg:
         optional: true
 
-  '@zenstackhq/client-helpers@3.5.1':
-    resolution: {integrity: sha512-QBwwWdoTsiC60ce+KHlOUF/ugGDwYzb0B/G5a1mN8JLBVemgROZbCFmmeod3SfXfr66eifUfRfAdRVPmlokn/A==}
+  '@zenstackhq/client-helpers@3.8.3':
+    resolution: {integrity: sha512-nHPZOIGbiMfocXYNo50jZI/G8wInJbmbul6Bi2KhoxDPBHfi8BGXmpg8J54zvAeHdXKZn0dJDoiYnQ4KwihJbA==}
 
-  '@zenstackhq/common-helpers@3.5.1':
-    resolution: {integrity: sha512-qK7zztQ+omxqdK+YqHZ6v/ma3SDuB8t8vejHMWTdJ93bpi/mZVYd/Bakh9HYijlCHyzrO4ZV1/5gbb9fMLpLVA==}
+  '@zenstackhq/common-helpers@3.8.3':
+    resolution: {integrity: sha512-djqRmpY+I6I+cT1X+EUqNmIilSwQYtFxbNcqjBycYs+d2+2otnu5nKUDecuuD9DDgntYIHCOs9kHTluhJPaGCQ==}
 
-  '@zenstackhq/language@3.5.1':
-    resolution: {integrity: sha512-wXYpRfPNUc1iGVN6irT8mfDS8gtDRqg+Ls6IvjgpvfK/cGQBU/u77ttjhHmYOCn6zE/u52WdtjTPxc1Xr35TgA==}
+  '@zenstackhq/language@3.8.3':
+    resolution: {integrity: sha512-M0eSOWitrjOicwn5z+xRbZFtGE7T1cQ/BnbYJGIzGBI0cqTMOciT4FgRoADsNwKuVx8kzmjMoBa2jXXsUsSMzA==}
 
-  '@zenstackhq/orm@3.5.1':
-    resolution: {integrity: sha512-5m0g19H76sstGDeF5OGn0UXhtPuOqiSfEjblI/JnH44E9EBVSlZ5z1ZAZEkunIoPqEr+XRP07TJmHuMgEzZ0xg==}
+  '@zenstackhq/orm@3.8.3':
+    resolution: {integrity: sha512-LuqYMwT722cdacBlZHA5OGhSRb9ikSarR33s3UV3zW36J/NOySGnhKDOvYJFFX9wyBr7YFzjraZCC8xMFGoY+w==}
     peerDependencies:
       better-sqlite3: ^12.5.0
       mysql2: ^3.16.1
@@ -1395,25 +1395,26 @@ packages:
       sql.js:
         optional: true
 
-  '@zenstackhq/plugin-policy@3.5.1':
-    resolution: {integrity: sha512-tgSj69gzWbtDBWCBW2UgTDgf9ju1Eb0LWBhI9cI9D9UWv2vVGwCcXuifUDh7huAZJMCsz3RhzLxOuQo/BRGS5g==}
+  '@zenstackhq/plugin-policy@3.8.3':
+    resolution: {integrity: sha512-dc6SUpEjlQaM3fqL7WWo5Eogz9qOH5hMVpYNNboH7Ukh246GUoUrsC7lc7Gb6zgeHD4ex6m/GHU+tBKg/BctCg==}
     peerDependencies:
-      kysely: ~0.28.8
+      kysely: ~0.29.0
 
-  '@zenstackhq/schema@3.5.1':
-    resolution: {integrity: sha512-Q0C7tOAPN8uK92JBeg3KS0aX2o9SeBjFuT7faB+f9masgJyprOmq9yeUFC6MWDJNkuBKm51ZwOiPfM8GX5BVIQ==}
+  '@zenstackhq/schema@3.8.3':
+    resolution: {integrity: sha512-8V9ky9/8LcXdJSzqZUj2Z3dKOJDjo+J3NWuo9Zpo5iX3CucrmIojshC5VdhCGlyiTSIiHpaigFW2FCZQXe1neA==}
 
-  '@zenstackhq/sdk@3.5.1':
-    resolution: {integrity: sha512-PVCCON2g3g45LquiSkfdcRbZ7AcTHxRU0ifhuPJ8urPvk9TsJ25ph15RJppENTKqbDK80lvvRy4eeU1J9iHqzA==}
+  '@zenstackhq/sdk@3.8.3':
+    resolution: {integrity: sha512-evoGD8kF21GNfr1/ySj/yJtu5MpDmUogMYz6GnV30iALmHBnJNMCEQ/cm2tuVzqQsd6K7PSv9rD7vpoxAeApXw==}
 
-  '@zenstackhq/server@3.5.1':
-    resolution: {integrity: sha512-m2cU1n2eonewD+lEehdTJgnxA9lHzYziIUF7yCsSCcZrvyxpbkBNxSwfkAZ/c33LPn7PFAGt1TSqsKbTG0zhHg==}
+  '@zenstackhq/server@3.8.3':
+    resolution: {integrity: sha512-seGgtlL1tg/WUo+a8QGqKsEk5zNhk7biWwdU8QI7zhrMO3GhsrJqRLzuLEisPBXTAa0axStsZxNoMfzKNpZ2rg==}
     peerDependencies:
       '@sveltejs/kit': ^2.0.0
       elysia: ^1.3.0
       express: ^5.0.0
       fastify: ^5.0.0
       fastify-plugin: ^5.0.0
+      h3: ^1.15.0
       hono: ^4.6.0
       next: ^15.0.0 || ^16.0.0
       nuxt: ^4.0.0
@@ -1429,6 +1430,8 @@ packages:
         optional: true
       fastify-plugin:
         optional: true
+      h3:
+        optional: true
       hono:
         optional: true
       next:
@@ -1436,8 +1439,8 @@ packages:
       nuxt:
         optional: true
 
-  '@zenstackhq/tanstack-query@3.5.1':
-    resolution: {integrity: sha512-1s1my5dub3YIwajOhPfZVER3vlBWBuUrulDRwD+fnzS14YLVj30eO5VGu844f9Ouscen/Lkw4Jq61m41iazyOA==}
+  '@zenstackhq/tanstack-query@3.8.3':
+    resolution: {integrity: sha512-tQyL6U1iewrPziY3as9eeZmHr/c1yxBxl+sI7no8flYp0O5N5S6RYULg9W2SHateN5zdxTo4MZMIhpeFPZRqbA==}
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       '@tanstack/svelte-query': ^6.0.0
@@ -1450,8 +1453,8 @@ packages:
       '@tanstack/vue-query':
         optional: true
 
-  '@zenstackhq/zod@3.5.1':
-    resolution: {integrity: sha512-pzZM1dJb7H9uI7+oqDSVB3PlgFHzTGSpJJNUwIpgAvq6LPZarf0hKgDwnrKmhQhua57fZoGJ945b4P+dDMVIYA==}
+  '@zenstackhq/zod@3.8.3':
+    resolution: {integrity: sha512-LCjeAkjZOCudW4TXjX9XeHG2Bdr1gpYQA8AjldT2AJfFQHNYRyaBmWccAJbGvuNvBvcqz3HzmxSstfWfM+HSog==}
     peerDependencies:
       zod: ^4.0.0
 
@@ -1599,13 +1602,14 @@ packages:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
 
-  chevrotain-allstar@0.3.1:
-    resolution: {integrity: sha512-b7g+y9A0v4mxCW1qUhf3BSVPg+/NvGErk/dOkrDaHA0nQIQGAtrOjlX//9OQtRlSCy+x9rfB5N8yC71lH1nvMw==}
+  chevrotain-allstar@0.4.3:
+    resolution: {integrity: sha512-2X4mkroolSMKqW+H22pyPMUVDqYZzPhephTmg/NODKb1IGYPHfxfhcW0EjS7wcPJNbze2i4vBWT7zT5FKF2lrQ==}
     peerDependencies:
-      chevrotain: ^11.0.0
+      chevrotain: ^12.0.0
 
-  chevrotain@11.0.3:
-    resolution: {integrity: sha512-ci2iJH6LeIkvP9eJW6gpueU8cnZhv85ELY8w8WiFtNjMHA5ad6pQLaJo9mEly/9qUyCpvqX8/POVUTf18/HFdw==}
+  chevrotain@12.0.0:
+    resolution: {integrity: sha512-csJvb+6kEiQaqo1woTdSAuOWdN0WTLIydkKrBnS+V5gZz0oqBrp4kQ35519QgK6TpBThiG3V1vNSHlIkv4AglQ==}
+    engines: {node: '>=22.0.0'}
 
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
@@ -2166,9 +2170,13 @@ packages:
     resolution: {integrity: sha512-SU3lgh0rPvq7upc6vvdVrCsSMUG1h3ChvHVOY7wJ2fw4C9QEB7X3d5eyYEyULUX7UQtxZJtZXGuT6U2US72UYA==}
     engines: {node: '>=20.0.0'}
 
-  langium@3.5.0:
-    resolution: {integrity: sha512-tnqVzWOkUcoiY0bWlyE8diFrZjmGBCF7MesC1bjUaZM+YGQSfdPC+KkhmHM0DWFG+uLcPxidKaPP1SYGtg3J0Q==}
-    engines: {node: '>=18.0.0'}
+  kysely@0.29.3:
+    resolution: {integrity: sha512-VHtBdW6XB/pgoTSqraM3UAa2rYoYdNXqnNPpX+8XXP+cwYbVEFuAp3HyPt1vpNfU9l7Y2kpUrA9QDPsy8uUqOQ==}
+    engines: {node: '>=22.0.0'}
+
+  langium@4.2.4:
+    resolution: {integrity: sha512-J0M9BkTOZ9Izee2YL0eXkUKFdWhrmTYYVLgiZTz6Z3KvK03ooM+vjVrfphKcdGVPWmM2cFYtDnNyIsIIZPrHNA==}
+    engines: {node: '>=20.10.0', npm: '>=10.2.3'}
 
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
@@ -2251,11 +2259,8 @@ packages:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
 
-  lodash-es@4.17.21:
-    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
-
-  lodash-es@4.17.23:
-    resolution: {integrity: sha512-kVI48u3PZr38HdYz98UmfPnXl2DXrpdctLrFLCd3kOx1xUkOmpFPx7gCWWM5MPkL/fD8zb+Ph0QzjGFs4+hHWg==}
+  lodash-es@4.18.1:
+    resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
 
   lodash.includes@4.3.0:
     resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
@@ -2991,13 +2996,13 @@ packages:
     resolution: {integrity: sha512-nAYYwfY3qnzX30IkA6AQZjVbtK6duGontcQm1WSG1MD94YLqK0515GNApXkoxKOWMusVssAHWLh9SeaoefYFGw==}
     engines: {node: '>= 0.4'}
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+  typescript@6.0.2:
+    resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
-  typescript@6.0.2:
-    resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -3114,8 +3119,8 @@ packages:
     resolution: {integrity: sha512-woByF3PDpkHFUreUa7Hos7+pUWdeWMXRd26+ZX2A8cFx6v/JPTtd4/uN0/jB6XQHYaOlHbio03NTHCqrgG5n7g==}
     hasBin: true
 
-  vscode-uri@3.0.8:
-    resolution: {integrity: sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw==}
+  vscode-uri@3.1.0:
+    resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
 
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
@@ -3636,22 +3641,20 @@ snapshots:
 
   '@aws/lambda-invoke-store@0.2.4': {}
 
-  '@chevrotain/cst-dts-gen@11.0.3':
+  '@chevrotain/cst-dts-gen@12.0.0':
     dependencies:
-      '@chevrotain/gast': 11.0.3
-      '@chevrotain/types': 11.0.3
-      lodash-es: 4.17.21
+      '@chevrotain/gast': 12.0.0
+      '@chevrotain/types': 12.0.0
 
-  '@chevrotain/gast@11.0.3':
+  '@chevrotain/gast@12.0.0':
     dependencies:
-      '@chevrotain/types': 11.0.3
-      lodash-es: 4.17.21
+      '@chevrotain/types': 12.0.0
 
-  '@chevrotain/regexp-to-ast@11.0.3': {}
+  '@chevrotain/regexp-to-ast@12.0.0': {}
 
-  '@chevrotain/types@11.0.3': {}
+  '@chevrotain/types@12.0.0': {}
 
-  '@chevrotain/utils@11.0.3': {}
+  '@chevrotain/utils@12.0.0': {}
 
   '@emnapi/core@1.9.1':
     dependencies:
@@ -4530,14 +4533,15 @@ snapshots:
 
   '@typescript-eslint/types@8.57.2': {}
 
-  '@zenstackhq/cli@3.5.1(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(pg@8.20.0)(typescript@6.0.2)':
+  '@zenstackhq/cli@3.8.3(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(kysely@0.28.14)(pg@8.20.0)(typescript@6.0.2)':
     dependencies:
-      '@zenstackhq/common-helpers': 3.5.1
-      '@zenstackhq/language': 3.5.1
-      '@zenstackhq/orm': 3.5.1(pg@8.20.0)(zod@4.3.6)
-      '@zenstackhq/schema': 3.5.1
-      '@zenstackhq/sdk': 3.5.1
-      '@zenstackhq/server': 3.5.1(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(express@5.2.1)(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/common-helpers': 3.8.3
+      '@zenstackhq/language': 3.8.3
+      '@zenstackhq/orm': 3.8.3(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/plugin-policy': 3.8.3(kysely@0.28.14)(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/schema': 3.8.3
+      '@zenstackhq/sdk': 3.8.3
+      '@zenstackhq/server': 3.8.3(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(express@5.2.1)(pg@8.20.0)(zod@4.3.6)
       chokidar: 5.0.0
       colors: 1.4.0
       commander: 8.3.0
@@ -4546,7 +4550,7 @@ snapshots:
       execa: 9.6.1
       express: 5.2.1
       jiti: 2.6.1
-      langium: 3.5.0
+      langium: 4.2.4
       mixpanel: 0.18.1
       ora: 5.4.1
       package-manager-detector: 1.6.0
@@ -4562,7 +4566,9 @@ snapshots:
       - elysia
       - fastify
       - fastify-plugin
+      - h3
       - hono
+      - kysely
       - magicast
       - next
       - nuxt
@@ -4570,33 +4576,40 @@ snapshots:
       - supports-color
       - typescript
 
-  '@zenstackhq/client-helpers@3.5.1':
+  '@zenstackhq/client-helpers@3.8.3(pg@8.20.0)(zod@4.3.6)':
     dependencies:
-      '@zenstackhq/common-helpers': 3.5.1
-      '@zenstackhq/schema': 3.5.1
+      '@zenstackhq/common-helpers': 3.8.3
+      '@zenstackhq/orm': 3.8.3(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/schema': 3.8.3
       decimal.js: 10.6.0
       superjson: 2.2.6
+    transitivePeerDependencies:
+      - better-sqlite3
+      - mysql2
+      - pg
+      - sql.js
+      - zod
 
-  '@zenstackhq/common-helpers@3.5.1': {}
+  '@zenstackhq/common-helpers@3.8.3': {}
 
-  '@zenstackhq/language@3.5.1':
+  '@zenstackhq/language@3.8.3':
     dependencies:
-      '@zenstackhq/common-helpers': 3.5.1
-      langium: 3.5.0
+      '@zenstackhq/common-helpers': 3.8.3
+      langium: 4.2.4
       pluralize: 8.0.0
       ts-pattern: 5.9.0
       vscode-languageserver: 9.0.1
 
-  '@zenstackhq/orm@3.5.1(pg@8.20.0)(zod@4.3.6)':
+  '@zenstackhq/orm@3.8.3(pg@8.20.0)(zod@4.3.6)':
     dependencies:
       '@paralleldrive/cuid2': 2.3.1
-      '@zenstackhq/common-helpers': 3.5.1
-      '@zenstackhq/schema': 3.5.1
-      '@zenstackhq/zod': 3.5.1(zod@4.3.6)
+      '@zenstackhq/common-helpers': 3.8.3
+      '@zenstackhq/schema': 3.8.3
+      '@zenstackhq/zod': 3.8.3(zod@4.3.6)
       cuid: 3.0.0
       decimal.js: 10.6.0
       json-stable-stringify: 1.3.0
-      kysely: 0.28.14
+      kysely: 0.29.3
       nanoid: 5.1.7
       postgres-array: 3.0.4
       toposort: 2.0.2
@@ -4608,10 +4621,10 @@ snapshots:
     optionalDependencies:
       pg: 8.20.0
 
-  '@zenstackhq/plugin-policy@3.5.1(kysely@0.28.14)(pg@8.20.0)(zod@4.3.6)':
+  '@zenstackhq/plugin-policy@3.8.3(kysely@0.28.14)(pg@8.20.0)(zod@4.3.6)':
     dependencies:
-      '@zenstackhq/common-helpers': 3.5.1
-      '@zenstackhq/orm': 3.5.1(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/common-helpers': 3.8.3
+      '@zenstackhq/orm': 3.8.3(pg@8.20.0)(zod@4.3.6)
       kysely: 0.28.14
       ts-pattern: 5.9.0
     transitivePeerDependencies:
@@ -4621,22 +4634,22 @@ snapshots:
       - sql.js
       - zod
 
-  '@zenstackhq/schema@3.5.1':
+  '@zenstackhq/schema@3.8.3':
     dependencies:
       decimal.js: 10.6.0
 
-  '@zenstackhq/sdk@3.5.1':
+  '@zenstackhq/sdk@3.8.3':
     dependencies:
-      '@zenstackhq/common-helpers': 3.5.1
-      '@zenstackhq/language': 3.5.1
-      langium: 3.5.0
+      '@zenstackhq/common-helpers': 3.8.3
+      '@zenstackhq/language': 3.8.3
+      langium: 4.2.4
       ts-pattern: 5.9.0
-      typescript: 5.9.3
+      typescript: 6.0.3
 
-  '@zenstackhq/server@3.5.1(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(express@5.2.1)(pg@8.20.0)(zod@4.3.6)':
+  '@zenstackhq/server@3.8.3(@sveltejs/kit@2.55.0(@sveltejs/vite-plugin-svelte@7.0.0(svelte@5.55.0)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(svelte@5.55.0)(typescript@6.0.2)(vite@8.0.2(@types/node@25.5.0)(esbuild@0.27.2)(jiti@2.6.1)(tsx@4.21.0)))(express@5.2.1)(pg@8.20.0)(zod@4.3.6)':
     dependencies:
-      '@zenstackhq/common-helpers': 3.5.1
-      '@zenstackhq/orm': 3.5.1(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/common-helpers': 3.8.3
+      '@zenstackhq/orm': 3.8.3(pg@8.20.0)(zod@4.3.6)
       decimal.js: 10.6.0
       openapi-types: 12.1.3
       superjson: 2.2.6
@@ -4654,18 +4667,25 @@ snapshots:
       - pg
       - sql.js
 
-  '@zenstackhq/tanstack-query@3.5.1(@tanstack/svelte-query@6.1.10(svelte@5.55.0))':
+  '@zenstackhq/tanstack-query@3.8.3(@tanstack/svelte-query@6.1.10(svelte@5.55.0))(pg@8.20.0)(zod@4.3.6)':
     dependencies:
-      '@zenstackhq/client-helpers': 3.5.1
-      '@zenstackhq/common-helpers': 3.5.1
-      '@zenstackhq/schema': 3.5.1
+      '@zenstackhq/client-helpers': 3.8.3(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/common-helpers': 3.8.3
+      '@zenstackhq/orm': 3.8.3(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/schema': 3.8.3
       decimal.js: 10.6.0
     optionalDependencies:
       '@tanstack/svelte-query': 6.1.10(svelte@5.55.0)
+    transitivePeerDependencies:
+      - better-sqlite3
+      - mysql2
+      - pg
+      - sql.js
+      - zod
 
-  '@zenstackhq/zod@3.5.1(zod@4.3.6)':
+  '@zenstackhq/zod@3.8.3(zod@4.3.6)':
     dependencies:
-      '@zenstackhq/schema': 3.5.1
+      '@zenstackhq/schema': 3.8.3
       decimal.js: 10.6.0
       zod: 4.3.6
 
@@ -4864,19 +4884,18 @@ snapshots:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
 
-  chevrotain-allstar@0.3.1(chevrotain@11.0.3):
+  chevrotain-allstar@0.4.3(chevrotain@12.0.0):
     dependencies:
-      chevrotain: 11.0.3
-      lodash-es: 4.17.23
+      chevrotain: 12.0.0
+      lodash-es: 4.18.1
 
-  chevrotain@11.0.3:
+  chevrotain@12.0.0:
     dependencies:
-      '@chevrotain/cst-dts-gen': 11.0.3
-      '@chevrotain/gast': 11.0.3
-      '@chevrotain/regexp-to-ast': 11.0.3
-      '@chevrotain/types': 11.0.3
-      '@chevrotain/utils': 11.0.3
-      lodash-es: 4.17.21
+      '@chevrotain/cst-dts-gen': 12.0.0
+      '@chevrotain/gast': 12.0.0
+      '@chevrotain/regexp-to-ast': 12.0.0
+      '@chevrotain/types': 12.0.0
+      '@chevrotain/utils': 12.0.0
 
   chokidar@4.0.3:
     dependencies:
@@ -5492,13 +5511,19 @@ snapshots:
 
   kysely@0.28.14: {}
 
-  langium@3.5.0:
+  kysely@0.29.3: {}
+
+  langium@4.2.4:
     dependencies:
-      chevrotain: 11.0.3
-      chevrotain-allstar: 0.3.1(chevrotain@11.0.3)
+      '@chevrotain/regexp-to-ast': 12.0.0
+      chevrotain: 12.0.0
+      chevrotain-allstar: 0.4.3(chevrotain@12.0.0)
+      vscode-jsonrpc: 8.2.0
       vscode-languageserver: 9.0.1
+      vscode-languageserver-protocol: 3.17.5
       vscode-languageserver-textdocument: 1.0.12
-      vscode-uri: 3.0.8
+      vscode-languageserver-types: 3.17.5
+      vscode-uri: 3.1.0
 
   lightningcss-android-arm64@1.32.0:
     optional: true
@@ -5555,9 +5580,7 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
-  lodash-es@4.17.21: {}
-
-  lodash-es@4.17.23: {}
+  lodash-es@4.18.1: {}
 
   lodash.includes@4.3.0: {}
 
@@ -6313,9 +6336,9 @@ snapshots:
       es-errors: 1.3.0
       is-typed-array: 1.1.15
 
-  typescript@5.9.3: {}
-
   typescript@6.0.2: {}
+
+  typescript@6.0.3: {}
 
   ulid@3.0.2: {}
 
@@ -6389,7 +6412,7 @@ snapshots:
     dependencies:
       vscode-languageserver-protocol: 3.17.5
 
-  vscode-uri@3.0.8: {}
+  vscode-uri@3.1.0: {}
 
   wcwidth@1.0.1:
     dependencies:
@@ -6417,11 +6440,11 @@ snapshots:
 
   yoctocolors@2.1.2: {}
 
-  zenstack-trpc@0.2.1(@trpc/server@11.15.0(typescript@6.0.2))(@zenstackhq/orm@3.5.1(pg@8.20.0)(zod@4.3.6))(@zenstackhq/zod@3.5.1(zod@4.3.6))(zod@4.3.6):
+  zenstack-trpc@0.2.1(@trpc/server@11.15.0(typescript@6.0.2))(@zenstackhq/orm@3.8.3(pg@8.20.0)(zod@4.3.6))(@zenstackhq/zod@3.8.3(zod@4.3.6))(zod@4.3.6):
     dependencies:
       '@trpc/server': 11.15.0(typescript@6.0.2)
-      '@zenstackhq/orm': 3.5.1(pg@8.20.0)(zod@4.3.6)
-      '@zenstackhq/zod': 3.5.1(zod@4.3.6)
+      '@zenstackhq/orm': 3.8.3(pg@8.20.0)(zod@4.3.6)
+      '@zenstackhq/zod': 3.8.3(zod@4.3.6)
       zod: 4.3.6
 
   zimmerframe@1.1.4: {}
