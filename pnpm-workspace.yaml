@@ -6,6 +6,7 @@ allowBuilds:
   bcrypt: true
   esbuild: true
   prisma: true
+  protobufjs: true
 
 onlyBuiltDependencies:
   - '@prisma/engines'

@@ -1,5 +1,9 @@
 import "dotenv/config";
+import { expand } from "dotenv-expand";
+import pkg from "../package.json";
 import { z } from "./lib.js";
+
+expand();
 
 const envSchema = z.object({
   // Server
@@ -7,6 +11,7 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   PORT: z.coerce.number().int().positive().default(3000),
+  APP_NAME: z.string().default(pkg.name),
 
   // Database
   DATABASE_URL: z.url(),
@@ -36,6 +41,9 @@ const envSchema = z.object({
   // Typst
   TYPST_API_ENDPOINT: z.url().optional(),
   TYPST_API_SECRET_TOKEN: z.string().optional(),
+
+  // Grafana Loki
+  LOKI_URL: z.url(),
 });
 
 // Parse and validate

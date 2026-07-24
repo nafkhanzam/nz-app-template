@@ -3,11 +3,16 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main
+      - production
+      - development
     paths:
       - apps/server/**
+      - "!apps/server/src/scripts/**"
       - .github/workflows/**
       - docker-compose.server.yml
+
+env:
+  NODE_ENV: ${{ github.ref_name }}
 
 jobs:
   deploy:
@@ -18,27 +23,24 @@ jobs:
 
     defaults:
       run:
-        working-directory: /home/nafkhanzam/kode/nz-app-template
+        working-directory: /home/nafkhanzam/kode/nz-app-template/${{ github.ref_name }}
 
     steps:
       - name: Pull latest changes
         run: git pull
 
-      # - name: Create .env files
-      #   run: |
-      #     echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
-      #     echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
+      - name: Create .env files
+        run: |
+          echo "${{ secrets.ENV_FILE_SERVER }}" | envsubst > apps/server/.env
+          echo "${{ secrets.ENV_FILE_WEB }}" | envsubst > apps/web/.env
 
       - name: Build containers
         run: docker compose -f docker-compose.server.yml build
 
       - name: Run database migrations
-        run: docker compose -f docker-compose.server.yml run --rm server pnpm
-          migrate:deploy
+        run: docker compose -f docker-compose.server.yml run --rm server pnpm migrate:deploy
 
       - name: Restart services
         env:
           SERVER_PORT: 40001
         run: docker compose -f docker-compose.server.yml up -d --force-recreate
-      # - name: Clean up old images
-      #   run: docker image prune -f

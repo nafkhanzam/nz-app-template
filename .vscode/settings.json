@@ -1,4 +1,13 @@
 {
+  "files.associations": {
+    "docker-compose.services.yml": "yaml"
+  },
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": [
+      "docker-compose*.yml",
+      "docker-compose*.yaml"
+    ]
+  },
   "svelte.plugin.svelte.compilerWarnings": {
     "a11y-accesskey": "ignore",
     "a11y-aria-activedescendant-has-tabindex": "ignore",

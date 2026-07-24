@@ -1,3 +1,4 @@
+import "./prerun.js";
 import { ZenStackMiddleware } from "@zenstackhq/server/express";
 import { RPCApiHandler } from "@zenstackhq/server/api";
 import { verifyAccessToken } from "./common.js";
@@ -6,19 +7,6 @@ import { env, prod } from "./env.js";
 import { cors, express, trpcExpress } from "./lib.js";
 import { appRouter } from "./router.ts";
 import { schema } from "./zenstack/schema";
-import console from "console";
-
-// Handle unhandled promise rejections
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  // Don't exit the process, just log the error
-});
-
-// Handle uncaught exceptions
-process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error);
-  // Don't exit the process, just log the error
-});
 
 (async () => {
   // express implementation
