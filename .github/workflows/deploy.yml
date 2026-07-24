@@ -7,6 +7,7 @@ on:
       - development
     paths:
       - apps/server/**
+      - proxy/**
       - "!apps/server/src/scripts/**"
       - .github/workflows/**
       - docker-compose.server.yml
@@ -20,6 +21,7 @@ jobs:
     if: false
     name: Deploy to VPS
     runs-on: self-hosted
+    environment: ${{ github.ref_name }}
 
     defaults:
       run:
@@ -34,13 +36,91 @@ jobs:
           echo "${{ secrets.ENV_FILE_SERVER }}" | envsubst > apps/server/.env
           echo "${{ secrets.ENV_FILE_WEB }}" | envsubst > apps/web/.env
 
-      - name: Build containers
-        run: docker compose -f docker-compose.server.yml build
+      - name: Validate .env files
+        run: |
+          set -euo pipefail
+          missing=0
+          for app in server web; do
+            template="apps/${app}/.env.template"
+            envfile="apps/${app}/.env"
+            while IFS='=' read -r key _; do
+              [ -z "$key" ] && continue
+              if ! grep -q "^${key}=" "$envfile"; then
+                echo "::error::missing key in apps/${app}/.env: $key"
+                missing=1
+                continue
+              fi
+              value="$(grep "^${key}=" "$envfile" | cut -d= -f2-)"
+              if [ "$value" = '""' ] || [ -z "$value" ]; then
+                echo "::error::empty value in apps/${app}/.env: $key"
+                missing=1
+              fi
+            done < "$template"
+          done
+          exit $missing
 
-      - name: Run database migrations
-        run: docker compose -f docker-compose.server.yml run --rm server pnpm migrate:deploy
+      - name: Load deploy config
+        run: echo "${{ secrets.ENV_FILE_DEPLOY }}" >> "$GITHUB_ENV"
 
-      - name: Restart services
+      - name: Validate ENV_FILE_DEPLOY
+        run: |
+          set -euo pipefail
+          missing=0
+          while IFS='=' read -r key _; do
+            [ -z "$key" ] && continue
+            value="${!key:-}"
+            if [ -z "$value" ]; then
+              echo "::error::missing/empty key in ENV_FILE_DEPLOY: $key"
+              missing=1
+            fi
+          done < .github/workflows/.env.template
+          exit $missing
+
+      - name: Blue-green deploy
         env:
-          SERVER_PORT: 40001
-        run: docker compose -f docker-compose.server.yml up -d --force-recreate
+          CADDYFILE: ${{ github.workspace }}/proxy/Caddyfile.${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          # proxy/ is gitignored (per-host config), seed it on first deploy
+          if [ ! -f "$CADDYFILE" ]; then
+            mkdir -p "$(dirname "$CADDYFILE")"
+            printf '%s {\n\treverse_proxy :%s\n}\n' "$DOMAIN" "$BLUE_PORT" > "$CADDYFILE"
+          fi
+
+          # figure out which slot is currently live from the proxy config
+          if grep -q ":${BLUE_PORT}" "$CADDYFILE"; then
+            OLD_SLOT=blue; OLD_PORT=$BLUE_PORT
+            NEW_SLOT=green; NEW_PORT=$GREEN_PORT
+          else
+            OLD_SLOT=green; OLD_PORT=$GREEN_PORT
+            NEW_SLOT=blue; NEW_PORT=$BLUE_PORT
+          fi
+          echo "Live slot: $OLD_SLOT ($OLD_PORT) -> deploying: $NEW_SLOT ($NEW_PORT)"
+
+          # run migrations once (shared DB, safe to run before either slot serves traffic)
+          docker compose -f docker-compose.server.yml run --rm server pnpm migrate:deploy
+
+          # bring up the new slot alongside the old one (own compose project so `down` can't touch the other slot)
+          SLOT=$NEW_SLOT SERVER_PORT=$NEW_PORT docker compose -p "nz-app-template-server-${NEW_SLOT}" -f docker-compose.server.yml up -d --force-recreate --build
+
+          # wait for the new slot to become healthy
+          for i in $(seq 1 30); do
+            if curl -sf "http://localhost:${NEW_PORT}/health" > /dev/null; then
+              echo "New slot healthy"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "New slot failed health check, rolling back"
+              SLOT=$NEW_SLOT SERVER_PORT=$NEW_PORT docker compose -p "nz-app-template-server-${NEW_SLOT}" -f docker-compose.server.yml down
+              exit 1
+            fi
+            sleep 2
+          done
+
+          # switch proxy traffic to the new slot
+          sed -i "s/:${OLD_PORT}/:${NEW_PORT}/" "$CADDYFILE"
+          caddy reload --config "$CADDYFILE"
+
+          # tear down the old slot
+          SLOT=$OLD_SLOT SERVER_PORT=$OLD_PORT docker compose -p "nz-app-template-server-${OLD_SLOT}" -f docker-compose.server.yml down

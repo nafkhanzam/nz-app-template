@@ -3,10 +3,10 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-    container_name: nz-app-template-server
+    container_name: nz-app-template-server-${SLOT}
     restart: unless-stopped
     ports:
-      - "${SERVER_PORT:-41001}:3000"
+      - "${SERVER_PORT}:3000"
     env_file:
       - apps/server/.env
     healthcheck:

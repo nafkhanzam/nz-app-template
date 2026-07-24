@@ -8,6 +8,9 @@ on:
     branches:
       - development
 
+env:
+  NODE_ENV: test
+
 jobs:
   test:
     # temporarily disable
@@ -15,22 +18,66 @@ jobs:
     name: Run Playwright Tests
     runs-on: self-hosted
     timeout-minutes: 15
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    environment: test
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Load test port config
+        run: echo "${{ secrets.ENV_FILE_TEST }}" >> "$GITHUB_ENV"
+
+      - name: Validate ENV_FILE_TEST
+        run: |
+          set -euo pipefail
+          missing=0
+          while IFS='=' read -r key _; do
+            [ -z "$key" ] && continue
+            value="${!key:-}"
+            if [ -z "$value" ]; then
+              echo "::error::missing/empty key in ENV_FILE_TEST: $key"
+              missing=1
+            fi
+          done < .github/workflows/.env.test.template
+          exit $missing
+
+      - name: Create .env files
+        run: |
+          echo "${{ secrets.ENV_FILE_SERVER }}" | envsubst > apps/server/.env
+          echo "${{ secrets.ENV_FILE_WEB }}" | envsubst > apps/web/.env
+
+      - name: Validate .env files
+        run: |
+          set -euo pipefail
+          missing=0
+          for app in server web; do
+            template="apps/${app}/.env.template"
+            envfile="apps/${app}/.env"
+            while IFS='=' read -r key _; do
+              [ -z "$key" ] && continue
+              if ! grep -q "^${key}=" "$envfile"; then
+                echo "::error::missing key in apps/${app}/.env: $key"
+                missing=1
+                continue
+              fi
+              value="$(grep "^${key}=" "$envfile" | cut -d= -f2-)"
+              if [ "$value" = '""' ] || [ -z "$value" ]; then
+                echo "::error::empty value in apps/${app}/.env: $key"
+                missing=1
+              fi
+            done < "$template"
+          done
+          exit $missing
+
+      - name: Validate web app points at test server port
+        run: |
+          set -euo pipefail
+          expected="http://localhost:${SERVER_PORT}"
+          actual="$(grep '^PUBLIC_BACKEND_URL=' apps/web/.env | cut -d= -f2- | tr -d '"')"
+          if [ "$actual" != "$expected" ]; then
+            echo "::error::apps/web/.env PUBLIC_BACKEND_URL is '$actual', expected '$expected' (SERVER_PORT=${SERVER_PORT}). Update secrets.ENV_FILE_WEB or ENV_FILE_TEST."
+            exit 1
+          fi
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -48,11 +95,6 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/web
 
-      - name: Create .env files
-        run: |
-          echo "${{ secrets.ENV_FILE_SERVER }}" > apps/server/.env
-          echo "${{ secrets.ENV_FILE_WEB }}" > apps/web/.env
-
       - name: Run database migrations
         run: pnpm migrate:deploy
         working-directory: apps/server
@@ -62,6 +104,8 @@ jobs:
         working-directory: apps/web
         env:
           CI: true
+          SERVER_PORT: ${{ env.SERVER_PORT }}
+          WEB_PORT: ${{ env.WEB_PORT }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

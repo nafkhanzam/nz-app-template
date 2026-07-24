@@ -1,16 +1,20 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const SERVER_PORT = process.env.SERVER_PORT || "3000";
+const WEB_PORT = process.env.WEB_PORT || "5173";
+
 export default defineConfig({
   globalSetup: "./tests/global-setup.ts",
   testDir: "./tests",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : "50%",
   reporter: [["html", { open: "never" }], ["list"]],
 
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:5173",
+    baseURL:
+      process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${WEB_PORT}`,
     trace: "on-first-retry",
     video: "on-first-retry",
     screenshot: "only-on-failure",
@@ -36,15 +40,16 @@ export default defineConfig({
     {
       command: "pnpm dev",
       cwd: "../server",
-      url: "http://localhost:3000/health",
+      url: `http://localhost:${SERVER_PORT}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
       stdout: "pipe",
       stderr: "pipe",
+      env: { PORT: SERVER_PORT },
     },
     {
-      command: "pnpm dev",
-      url: "http://localhost:5173",
+      command: `pnpm dev -- --port ${WEB_PORT} --strictPort`,
+      url: `http://localhost:${WEB_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },
