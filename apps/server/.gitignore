@@ -1,6 +1,3 @@
 node_modules
 dist
 .env*
-!.env.template
-!.env.local
-!.env.example

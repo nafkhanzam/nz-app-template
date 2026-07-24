@@ -40,8 +40,9 @@ jobs:
         run: |
           set -euo pipefail
           missing=0
+          declare -A secret_names=( [server]=ENV_FILE_SERVER [web]=ENV_FILE_WEB )
           for app in server web; do
-            template="apps/${app}/.env.template"
+            template="env-templates/${secret_names[$app]}.template"
             envfile="apps/${app}/.env"
             while IFS='=' read -r key _; do
               [ -z "$key" ] && continue
@@ -60,7 +61,7 @@ jobs:
           exit $missing
 
       - name: Load deploy config
-        run: echo "${{ secrets.ENV_FILE_DEPLOY }}" >> "$GITHUB_ENV"
+        run: echo "${{ secrets.ENV_FILE_DEPLOY }}" | envsubst >> "$GITHUB_ENV"
 
       - name: Validate ENV_FILE_DEPLOY
         run: |
@@ -73,7 +74,7 @@ jobs:
               echo "::error::missing/empty key in ENV_FILE_DEPLOY: $key"
               missing=1
             fi
-          done < .github/workflows/.env.template
+          done < env-templates/ENV_FILE_DEPLOY.template
           exit $missing
 
       - name: Blue-green deploy
