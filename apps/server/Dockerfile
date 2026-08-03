@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS base
-RUN corepack enable && corepack prepare pnpm@10.26.0 --activate
+FROM node:alpine AS base
+RUN corepack enable && corepack prepare pnpm --activate
 WORKDIR /app
 
 # Install dependencies
@@ -21,11 +21,11 @@ RUN pnpm generate && pnpm build
 
 # Production image
 FROM base AS runner
-ENV NODE_ENV=production
+ENV APP_ENV=production
 WORKDIR /app/apps/server
 
 # Create non-root user
-RUN addgroup --system --gid 1001 nodejs && \
+RUN addgroup --system --gid 1001 appgroup && \
     adduser --system --uid 1001 appuser
 
 # Copy necessary files
@@ -36,10 +36,10 @@ COPY --from=builder /app/apps/server/package.json ./
 COPY --from=builder /app/apps/server/src/zenstack ./src/zenstack
 
 # Give appuser write access to directories that need runtime writes
-RUN chown -R appuser:nodejs ./src/zenstack && \
-    chown -R appuser:nodejs /app/node_modules/.pnpm/@prisma+engines* || true
+RUN chown -R appuser:appgroup ./src/zenstack && \
+    chown -R appuser:appgroup /app/node_modules/.pnpm/@prisma+engines* || true
 
 USER appuser
 
 EXPOSE 3000
-CMD ["node", "--max-old-space-size=8192", "dist/main.js"]
+CMD ["node", "dist/main.js"]

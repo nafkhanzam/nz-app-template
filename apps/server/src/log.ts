@@ -8,7 +8,7 @@ const winstonLogger = winston.createLogger({
   transports: [
     new LokiTransport({
       host: env.LOKI_URL,
-      labels: { app: env.APP_NAME, env: env.NODE_ENV },
+      labels: { app: env.APP_NAME, env: env.APP_ENV },
       json: true,
       batching: true,
       interval: 2,

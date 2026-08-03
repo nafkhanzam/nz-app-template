@@ -40,7 +40,7 @@
   setQuerySettingsContext({
     endpoint: `${env.PUBLIC_BACKEND_URL}/api/model`,
     fetch: myFetch,
-    logging: env.PUBLIC_ENVIRONMENT !== "production",
+    logging: env.PUBLIC_ENABLE_LOGGING?.toLowerCase() === "true",
   });
 
   const queryClient = new QueryClient({

@@ -7,10 +7,8 @@ expand();
 
 const envSchema = z.object({
   // Server
-  NODE_ENV: z
-    .enum(["development", "test", "production"])
-    .default("development"),
   PORT: z.coerce.number().int().positive().default(3000),
+  APP_ENV: z.string(),
   APP_NAME: z.string().default(pkg.name),
 
   // Database
@@ -59,5 +57,3 @@ if (!parsed.success) {
 export type Env = z.infer<typeof envSchema>;
 
 export const env: Env = parsed.data;
-
-export const prod = () => env.NODE_ENV === "production";
