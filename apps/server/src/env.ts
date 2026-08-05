@@ -10,6 +10,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   APP_ENV: z.string(),
   APP_NAME: z.string().default(pkg.name),
+  VERBOSE: z.boolean().default(false),
 
   // Database
   DATABASE_URL: z.url(),
@@ -35,10 +36,6 @@ const envSchema = z.object({
   OIDC_CLIENT_SECRET: z.string(),
   OIDC_REDIRECT_URI: z.url(),
   OIDC_STATE: z.string().optional(),
-
-  // Typst
-  TYPST_API_ENDPOINT: z.url().optional(),
-  TYPST_API_SECRET_TOKEN: z.string().optional(),
 
   // Grafana Loki
   LOKI_URL: z.url(),

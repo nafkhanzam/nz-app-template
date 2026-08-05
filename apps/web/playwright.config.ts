@@ -13,8 +13,7 @@ export default defineConfig({
   reporter: [["html", { open: "never" }], ["list"]],
 
   use: {
-    baseURL:
-      process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${WEB_PORT}`,
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || `http://localhost:${WEB_PORT}`,
     trace: "on-first-retry",
     video: "on-first-retry",
     screenshot: "only-on-failure",

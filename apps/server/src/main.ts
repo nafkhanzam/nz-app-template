@@ -3,7 +3,7 @@ import { ZenStackMiddleware } from "@zenstackhq/server/express";
 import { RPCApiHandler } from "@zenstackhq/server/api";
 import { verifyAccessToken } from "./common.js";
 import { createContext, getClient } from "./context.js";
-import { env, prod } from "./env.js";
+import { env } from "./env.js";
 import { cors, express, trpcExpress } from "./lib.js";
 import { appRouter } from "./router.ts";
 import { schema } from "./zenstack/schema";
@@ -42,21 +42,19 @@ import { schema } from "./zenstack/schema";
       },
     }),
   );
-  // Middleware to return 401 if token is present but invalid/expired
-  // This allows client-side to trigger token refresh
-  app.use("/api/model", (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const user = verifyAccessToken(authHeader);
-      if (!user) {
-        return res.status(401).json({ error: "Token expired or invalid" });
-      }
-    }
-    next();
-  });
 
   app.use(
     "/api/model",
+    (req, res, next) => {
+      const authHeader = req.headers.authorization;
+      if (authHeader) {
+        const user = verifyAccessToken(authHeader);
+        if (!user) {
+          return res.status(401).json({ error: "Token expired or invalid" });
+        }
+      }
+      next();
+    },
     ZenStackMiddleware({
       apiHandler: new RPCApiHandler({
         schema,
@@ -100,7 +98,7 @@ import { schema } from "./zenstack/schema";
     res.status(statusCode).json({
       error: {
         message,
-        ...(!prod() && {
+        ...(env.VERBOSE && {
           stack: err.stack,
           details: err,
         }),
