@@ -7,3 +7,18 @@
   @apply border-4;
   @apply border-red-600;
 }
+
+.toaster .indicator {
+  position: relative !important;
+}
+
+.toaster .status {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  margin: auto !important;
+  width: 20px !important;
+  height: 20px !important;
+  transform: none !important;
+}
