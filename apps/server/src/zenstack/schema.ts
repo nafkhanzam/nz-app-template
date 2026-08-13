@@ -174,41 +174,6 @@ export class SchemaType implements SchemaDef {
                 key: { type: "String" }
             }
         },
-        AuditLog: {
-            name: "AuditLog",
-            fields: {
-                timestamp: {
-                    name: "timestamp",
-                    type: "DateTime",
-                    id: true,
-                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.call("now") }] }] as readonly AttributeApplication[],
-                    default: ExpressionUtils.call("now") as FieldDefault
-                },
-                cuid: {
-                    name: "cuid",
-                    type: "String",
-                    id: true,
-                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.call("cuid") }] }] as readonly AttributeApplication[],
-                    default: ExpressionUtils.call("cuid") as FieldDefault
-                },
-                action: {
-                    name: "action",
-                    type: "String"
-                },
-                data: {
-                    name: "data",
-                    type: "Json"
-                }
-            },
-            attributes: [
-                { name: "@@id", args: [{ name: "fields", value: ExpressionUtils.array("DateTime", [ExpressionUtils.field("timestamp"), ExpressionUtils.field("cuid")]) }] },
-                { name: "@@deny", args: [{ name: "operation", value: ExpressionUtils.literal("all") }, { name: "condition", value: ExpressionUtils.literal(true) }] }
-            ] as readonly AttributeApplication[],
-            idFields: ["timestamp", "cuid"],
-            uniqueFields: {
-                timestamp_cuid: { timestamp: { type: "DateTime" }, cuid: { type: "String" } }
-            }
-        },
         RefreshToken: {
             name: "RefreshToken",
             fields: {

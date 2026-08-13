@@ -68,17 +68,6 @@ model File with Timestamps {
   @@allow('all', auth().id == userId)
 }
 
-model AuditLog {
-  timestamp DateTime @default(now())
-  cuid      String   @default(cuid())
-
-  action    String
-  data      Json
-
-  @@id([timestamp, cuid])
-  @@deny('all', true)
-}
-
 model RefreshToken with Base {
   userId  String
   User    User    @relation(fields: [userId], references: [id])
