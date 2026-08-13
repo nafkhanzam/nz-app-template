@@ -14,8 +14,9 @@
     "migrate:dev": "zen migrate dev",
     "migrate:deploy": "zen migrate deploy",
     "typecheck": "pnpm tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run tests/unit",
+    "test:watch": "vitest tests/unit",
+    "test:integration": "vitest run tests/integration"
   },
   "zenstack": {
     "schema": "./src/zenstack"

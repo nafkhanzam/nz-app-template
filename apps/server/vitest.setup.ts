@@ -5,6 +5,12 @@
  *
  * Only fills what is unset, so a developer's real .env never gets overwritten.
  */
+import { config } from "dotenv";
+
+// Load .env first so real local values win over the fallbacks below — the
+// integration tests need actual Garage credentials, not placeholders.
+config();
+
 const defaults: Record<string, string> = {
   APP_ENV: "test",
   APP_NAME: "nz-app-template",

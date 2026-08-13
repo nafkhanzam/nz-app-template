@@ -15,9 +15,14 @@ export const s3 = new S3Client({
     accessKeyId: env.AWS_ACCESS_KEY_ID,
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
   },
+  // The SDK adds a CRC32 checksum by default, but a presigned URL is signed
+  // before the body exists, so it ships a zero checksum that S3-compatible
+  // servers reject with InvalidDigest.
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
   ...(env.AWS_S3_ENDPOINT && {
     endpoint: env.AWS_S3_ENDPOINT,
-    forcePathStyle: true, // Required for MinIO and LocalStack
+    forcePathStyle: true, // Required for Garage, MinIO and LocalStack
   }),
 });
 
@@ -71,9 +76,9 @@ export const generateFileKey = (
  * Get the public URL for a file
  */
 export const getFileUrl = (key: string): string => {
-  if (env.AWS_S3_ENDPOINT) {
-    // For MinIO or custom endpoints
-    return `${env.AWS_S3_ENDPOINT}/${env.AWS_S3_BUCKET}/${key}`;
+  // Must not use AWS_S3_ENDPOINT: that one requires a signature for GetObject.
+  if (env.PUBLIC_S3_ENDPOINT) {
+    return `${env.PUBLIC_S3_ENDPOINT}/${key}`;
   }
   // For AWS S3
   return `https://${env.AWS_S3_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${key}`;

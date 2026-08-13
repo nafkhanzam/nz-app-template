@@ -35,7 +35,12 @@ export const envSchema = z.object({
   AWS_ACCESS_KEY_ID: z.string(),
   AWS_SECRET_ACCESS_KEY: z.string(),
   AWS_S3_BUCKET: z.string(),
+  // Signed operations (presigned PUT, HeadObject). SigV4 binds to this host,
+  // so it must be the same URL the browser will use.
   AWS_S3_ENDPOINT: z.string().optional(),
+  // Anonymous reads. Garage serves these on a separate port and resolves the
+  // bucket from the host, so this already includes the bucket.
+  PUBLIC_S3_ENDPOINT: z.url().optional(),
 
   // OIDC — ships with the template but is opt-in. Leave unset to run without it.
   OIDC_ISSUER: z.url().optional(),
