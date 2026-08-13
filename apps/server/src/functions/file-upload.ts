@@ -6,7 +6,7 @@ import {
   getFileSize,
   getFileUrl,
 } from "../s3.ts";
-import { PrefixFile, prefixSizeMap } from "../shared/upload.ts";
+import { type PrefixFile, prefixSizeMap } from "../shared/upload.ts";
 import { tuser } from "../trpc.ts";
 
 /**

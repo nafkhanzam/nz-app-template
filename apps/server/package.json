@@ -6,14 +6,16 @@
   "types": "dist",
   "scripts": {
     "dev": "tsx watch src/main",
-    "build": "tsc -b",
+    "build": "tsc -b tsconfig.build.json",
     "generate": "zen generate",
     "db:studio": "zen studio",
     "db:push": "zen db push",
     "db:seed": "tsx src/scripts/seed.ts",
     "migrate:dev": "zen migrate dev",
     "migrate:deploy": "zen migrate deploy",
-    "typecheck": "pnpm tsc --noEmit"
+    "typecheck": "pnpm tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "zenstack": {
     "schema": "./src/zenstack"
@@ -37,7 +39,8 @@
     "csv-parse": "7.0.1",
     "js-yaml": "5.2.1",
     "tsx": "4.23.0",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1080.0",

@@ -11,11 +11,8 @@ export { default as axios } from "axios";
 export function sleep(ms: number): Promise<void> {
   return new Promise<void>((res) => setTimeout(res, ms));
 }
-export type JsonValue = string | number | boolean | JsonObject | JsonArray;
-export type JsonObject = {
-  [key: string]: JsonValue | null;
-};
-export type JsonArray = ReadonlyArray<JsonValue | null>;
+// Re-exported from the ORM so the two definitions can never drift apart.
+export type { JsonArray, JsonObject, JsonValue } from "@zenstackhq/orm";
 
 function genCharArray(st: string, ed: string): string[] {
   const res = [];

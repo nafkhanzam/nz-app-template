@@ -14,7 +14,7 @@ import { register } from "./functions/register.ts";
 import { t } from "./trpc.ts";
 import { createZenStackRouter } from "zenstack-trpc";
 import { schema } from "./zenstack/schema.ts";
-import { AnyRouter } from "@trpc/server";
+import type { AnyRouter } from "@trpc/server";
 
 export const appRouter = t.router({
   hello,
