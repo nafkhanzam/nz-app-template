@@ -37,8 +37,12 @@ pnpm test:headed  # visible browser
 
 ### Local services
 ```bash
-docker compose -f docker-compose.services.yml up -d   # Postgres + MinIO
+docker compose -f docker-compose.services.yml up -d      # Postgres + Garage
+bash scripts/garage-init.sh nz-app-template-development  # bucket, key, public reads
 ```
+Garage replaces MinIO (community edition archived April 2026). It exposes two
+ports: `3900` for signed S3 calls and `3902` for anonymous reads, where the
+bucket is taken from the first label of the host.
 
 ## Architecture
 
@@ -75,4 +79,8 @@ JWT-based dual-token (access + refresh). OIDC login also supported. Access token
 
 ### File uploads
 
-Presigned S3 URLs: client calls `getUploadUrl` tRPC → gets presigned PUT URL → uploads directly to S3/MinIO → calls `confirmUpload` to mark `File.status = UPLOADED`.
+Presigned S3 URLs: client calls `getUploadUrl` tRPC → gets presigned PUT URL → uploads directly to S3/Garage → calls `confirmUpload` to mark `File.status = UPLOADED`.
+
+`AWS_S3_ENDPOINT` signs uploads; `PUBLIC_S3_ENDPOINT` serves reads. They are different hosts and must not be swapped — a signature is bound to the host it was made for.
+
+The S3 client sets `requestChecksumCalculation: "WHEN_REQUIRED"`. Without it the SDK signs a CRC32 it cannot compute ahead of the upload, and S3-compatible servers reject the PUT with `InvalidDigest`.

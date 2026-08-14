@@ -1,10 +1,10 @@
 import type { ExpressMiddlewareOptions } from "@zenstackhq/server/express";
 import { verifyAccessToken } from "./common.js";
 import { authDb, db } from "./db.js";
-import { JsonObject, type trpcExpress } from "./lib.js";
+import type { JsonObject, JsonValue, trpcExpress } from "./lib.js";
 import { createLog } from "./log.js";
 import { s3 } from "./s3.js";
-import { JWTPayload } from "./shared/jwt.js";
+import type { JWTPayload } from "./shared/jwt.js";
 import type { SchemaType } from "./zenstack/schema";
 
 const getUserFromToken = (token: string | undefined): JWTPayload | null => {
@@ -32,6 +32,13 @@ const headersToObject = (rawHeaders: string[]) => {
   }
   return headers;
 };
+/** Uses `db`, not `userDb`: AuditLog is `@@deny('all', true)`. Fire-and-forget. */
+const auditLog = (action: string, data: JsonValue = {}) => {
+  void db.auditLog.create({ data: { action, data } }).catch((err: unknown) => {
+    console.error("Failed to write audit log:", action, err);
+  });
+};
+
 export const createContext = async ({
   req,
   res,
@@ -46,6 +53,7 @@ export const createContext = async ({
     db,
     userDb,
     s3,
+    auditLog,
     log: createLog({ requestHeaders }),
   };
 };

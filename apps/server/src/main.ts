@@ -1,9 +1,11 @@
 import "./prerun.js";
 import { ZenStackMiddleware } from "@zenstackhq/server/express";
 import { RPCApiHandler } from "@zenstackhq/server/api";
+import type { Request, Response } from "express";
 import { verifyAccessToken } from "./common.js";
 import { createContext, getClient } from "./context.js";
 import { env } from "./env.js";
+import { getReadiness, gitSha, isReady } from "./health.js";
 import { cors, express, trpcExpress } from "./lib.js";
 import { appRouter } from "./router.ts";
 import { schema } from "./zenstack/schema";
@@ -76,8 +78,32 @@ import { schema } from "./zenstack/schema";
   app.get("/ping", (_req, res) => {
     res.send("pong");
   });
-  app.get("/health", (_req, res) => {
+
+  // live: process is up (Docker healthcheck). ready: can serve, polled by
+  // blue-green before switching. version: which build answers, checked after.
+  const liveHandler = (_req: Request, res: Response) => {
     res.json({ status: "ok" });
+  };
+
+  app.get("/health/live", liveHandler);
+  // Kept for backwards compatibility with the old single endpoint.
+  app.get("/health", liveHandler);
+
+  app.get("/health/version", (_req, res) => {
+    res.json({
+      sha: gitSha(),
+      appName: env.APP_NAME,
+      appEnv: env.APP_ENV,
+    });
+  });
+
+  app.get("/health/ready", async (_req, res) => {
+    const checks = await getReadiness();
+    const ready = isReady(checks);
+    res.status(ready ? 200 : 503).json({
+      status: ready ? "ready" : "not_ready",
+      checks,
+    });
   });
 
   app.use((req, res, next) => {

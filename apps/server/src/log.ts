@@ -4,19 +4,35 @@ import LokiTransport from "winston-loki";
 import { env } from "./env.js";
 import type { JsonObject } from "./lib.js";
 
-const winstonLogger = winston.createLogger({
-  transports: [
-    new LokiTransport({
-      host: env.LOKI_URL,
-      labels: { app: env.APP_NAME, env: env.APP_ENV },
-      json: true,
-      batching: true,
-      interval: 2,
-      onConnectionError: (err) => {
-        console.error("Failed to push log to Loki:", err);
-      },
-    }),
-  ],
+/** Null when unconfigured: a transport with `host: undefined` errors on every line. */
+export const createLokiLogger = (opts: {
+  lokiUrl?: string;
+  appName: string;
+  appEnv: string;
+}): winston.Logger | null => {
+  if (!opts.lokiUrl) {
+    return null;
+  }
+  return winston.createLogger({
+    transports: [
+      new LokiTransport({
+        host: opts.lokiUrl,
+        labels: { app: opts.appName, env: opts.appEnv },
+        json: true,
+        batching: true,
+        interval: 2,
+        onConnectionError: (err) => {
+          console.error("Failed to push log to Loki:", err);
+        },
+      }),
+    ],
+  });
+};
+
+const lokiLogger = createLokiLogger({
+  lokiUrl: env.LOKI_URL,
+  appName: env.APP_NAME,
+  appEnv: env.APP_ENV,
 });
 
 export const createLog = (context?: { requestHeaders?: JsonObject }) => {
@@ -24,17 +40,20 @@ export const createLog = (context?: { requestHeaders?: JsonObject }) => {
     name: env.APP_NAME,
   });
 
-  log.attachTransport((logObj) => {
-    const { _meta, ...rest } = logObj;
+  // Skipped entirely when unconfigured, else winston warns on every line.
+  if (lokiLogger) {
+    log.attachTransport((logObj) => {
+      const { _meta, ...rest } = logObj;
 
-    winstonLogger.log({
-      level: _meta.logLevelName.toLowerCase(),
-      message: JSON.stringify({
-        ...rest,
-        requestHeaders: context?.requestHeaders,
-      }),
+      lokiLogger.log({
+        level: _meta.logLevelName.toLowerCase(),
+        message: JSON.stringify({
+          ...rest,
+          requestHeaders: context?.requestHeaders,
+        }),
+      });
     });
-  });
+  }
 
   return log;
 };

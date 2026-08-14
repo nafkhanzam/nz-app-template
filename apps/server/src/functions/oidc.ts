@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { generateTokensFromUser } from "../common.js";
 import { env } from "../env.js";
-import { axios, JsonValue, renderIf, z } from "../lib.js";
+import { axios, type JsonValue, renderIf, z } from "../lib.js";
 import { t } from "../trpc.js";
 import { db } from "../db.js";
 import { Role } from "../zenstack/models.js";
@@ -52,6 +52,38 @@ interface OIDCConfiguration {
   issuer: string;
 }
 
+interface OidcSettings {
+  issuer: string;
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  state: string;
+}
+
+/** OIDC is opt-in; narrow the optional env once instead of at each use site. */
+const requireOidcSettings = (): OidcSettings => {
+  const { OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_REDIRECT_URI } =
+    env;
+  if (
+    !OIDC_ISSUER ||
+    !OIDC_CLIENT_ID ||
+    !OIDC_CLIENT_SECRET ||
+    !OIDC_REDIRECT_URI
+  ) {
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message: "OIDC login is not configured on this server.",
+    });
+  }
+  return {
+    issuer: OIDC_ISSUER,
+    clientId: OIDC_CLIENT_ID,
+    clientSecret: OIDC_CLIENT_SECRET,
+    redirectUri: OIDC_REDIRECT_URI,
+    state: env.OIDC_STATE ?? "",
+  };
+};
+
 // Cache for OIDC configuration to avoid repeated requests
 let oidcConfigCache: OIDCConfiguration | null = null;
 
@@ -64,7 +96,7 @@ async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
   }
 
   try {
-    const configUrl = `${env.OIDC_ISSUER}/.well-known/openid-configuration`;
+    const configUrl = `${requireOidcSettings().issuer}/.well-known/openid-configuration`;
     const response = await axios.get<OIDCConfiguration>(configUrl);
     oidcConfigCache = response.data;
     return oidcConfigCache;
@@ -85,11 +117,12 @@ async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
  * Returns the authorization URL that the client should redirect to
  */
 export const oidcInitiateLogin = t.procedure.query(async () => {
+  const oidc = requireOidcSettings();
   const config = await getOIDCConfiguration();
 
   const params = new URLSearchParams({
-    client_id: env.OIDC_CLIENT_ID,
-    redirect_uri: env.OIDC_REDIRECT_URI,
+    client_id: oidc.clientId,
+    redirect_uri: oidc.redirectUri,
     response_type: "code",
     scope: "openid profile email role group",
   });
@@ -113,6 +146,7 @@ export const oidcHandleCallback = t.procedure
   )
   .mutation(async ({ ctx, ctx: { db, auditLog }, input }) => {
     try {
+      const oidc = requireOidcSettings();
       const config = await getOIDCConfiguration();
 
       // Exchange code for tokens
@@ -122,10 +156,10 @@ export const oidcHandleCallback = t.procedure
           new URLSearchParams({
             grant_type: "authorization_code",
             code: input.code,
-            redirect_uri: env.OIDC_REDIRECT_URI,
-            client_id: env.OIDC_CLIENT_ID,
-            client_secret: env.OIDC_CLIENT_SECRET,
-            state: env.OIDC_STATE ?? "",
+            redirect_uri: oidc.redirectUri,
+            client_id: oidc.clientId,
+            client_secret: oidc.clientSecret,
+            state: oidc.state,
           }),
           {
             headers: {
@@ -193,7 +227,7 @@ export const oidcHandleCallback = t.procedure
             email,
             passwordHash: "", // OIDC users don't need password
             role,
-            oidc_issuer: env.OIDC_ISSUER, // Store OIDC issuer
+            oidc_issuer: oidc.issuer, // Store OIDC issuer
             oidc_userInfo: userInfoJson,
             oidc_sub,
           },
@@ -206,7 +240,7 @@ export const oidcHandleCallback = t.procedure
             username,
             name,
             email,
-            oidc_issuer: env.OIDC_ISSUER, // Store OIDC issuer
+            oidc_issuer: oidc.issuer, // Store OIDC issuer
             oidc_userInfo: userInfoJson,
             oidc_sub,
           },
@@ -216,7 +250,7 @@ export const oidcHandleCallback = t.procedure
       // Generate JWT tokens using existing auth system
       const appTokens = await generateTokensFromUser(ctx, user);
 
-      auditLog(`trpc.oidc.login`, { username } as unknown as JsonValue);
+      auditLog(`trpc.oidc.login`, { username });
 
       // Return tokens and user info
       return {
@@ -246,10 +280,11 @@ export const oidcHandleCallback = t.procedure
  * Returns the URL to logout from the OIDC provider
  */
 export const oidcLogout = t.procedure.query(async () => {
+  const oidc = requireOidcSettings();
   const config = await getOIDCConfiguration();
   const logoutUrl =
     config.end_session_endpoint ||
-    `${env.OIDC_ISSUER}/protocol/openid-connect/logout`;
+    `${oidc.issuer}/protocol/openid-connect/logout`;
   return { logoutUrl };
 });
 
