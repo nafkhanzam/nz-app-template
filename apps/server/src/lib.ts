@@ -4,6 +4,7 @@ export { express };
 export * as z from "zod";
 import cors from "cors";
 import { customAlphabet } from "nanoid";
+export type { JsonValue, JsonObject, JsonArray } from "@zenstackhq/orm";
 export { cors };
 export { default as bcrypt } from "bcrypt";
 export { default as jwt } from "jsonwebtoken";
@@ -11,11 +12,6 @@ export { default as axios } from "axios";
 export function sleep(ms: number): Promise<void> {
   return new Promise<void>((res) => setTimeout(res, ms));
 }
-export type JsonValue = string | number | boolean | JsonObject | JsonArray;
-export type JsonObject = {
-  [key: string]: JsonValue | null;
-};
-export type JsonArray = ReadonlyArray<JsonValue | null>;
 
 function genCharArray(st: string, ed: string): string[] {
   const res = [];

@@ -10,6 +10,6 @@ export const hello = t.procedure
     //   code: "INTERNAL_SERVER_ERROR",
     //   message: `Testing`,
     // });
-    opts.ctx.auditLog(`hello`);
+    opts.ctx.log.info(`hello`);
     return `hello ${opts.input ?? opts.ctx.user?.username ?? "world"}`;
   });

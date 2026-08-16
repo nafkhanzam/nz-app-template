@@ -31,7 +31,7 @@ export const createLog = (context?: { requestHeaders?: JsonObject }) => {
       level: _meta.logLevelName.toLowerCase(),
       message: JSON.stringify({
         ...rest,
-        requestHeaders: context?.requestHeaders,
+        _requestHeaders: context?.requestHeaders,
       }),
     });
   });

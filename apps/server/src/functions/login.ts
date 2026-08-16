@@ -14,7 +14,7 @@ export const login = t.procedure
       password: z.string().nonempty(),
     }),
   )
-  .mutation(async ({ ctx, ctx: { db, auditLog }, input }) => {
+  .mutation(async ({ ctx, ctx: { db, log }, input }) => {
     const user = await db.user.findUnique({
       where: {
         username: input.username,
@@ -30,7 +30,7 @@ export const login = t.procedure
 
     const tokens = await generateTokensFromUser(ctx, user);
 
-    auditLog(`trpc.login`, { tokens });
+    log.info(`trpc.login`, { tokens });
 
     return tokens;
   });

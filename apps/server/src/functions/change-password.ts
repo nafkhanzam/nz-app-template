@@ -10,7 +10,7 @@ export const changePassword = tuser
       newPassword: z.string(),
     }),
   )
-  .mutation(async ({ ctx: { db, user, auditLog }, input }) => {
+  .mutation(async ({ ctx: { db, user, log }, input }) => {
     if (!user?.username) {
       throw unauthorizedError;
     }
@@ -45,7 +45,7 @@ export const changePassword = tuser
       data: { passwordHash: newHashed },
     });
 
-    auditLog(`changePassword`, {
+    log.info(`changePassword`, {
       input,
     });
 

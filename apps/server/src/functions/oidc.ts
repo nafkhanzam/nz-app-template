@@ -1,9 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { generateTokensFromUser } from "../common.js";
 import { env } from "../env.js";
-import { axios, JsonValue, renderIf, z } from "../lib.js";
+import { axios, JsonValue, z } from "../lib.js";
 import { t } from "../trpc.js";
-import { db } from "../db.js";
 import { Role } from "../zenstack/models.js";
 
 interface OIDCTokenResponse {
@@ -111,7 +110,7 @@ export const oidcHandleCallback = t.procedure
       code: z.string(),
     }),
   )
-  .mutation(async ({ ctx, ctx: { db, auditLog }, input }) => {
+  .mutation(async ({ ctx, ctx: { db, log }, input }) => {
     try {
       const config = await getOIDCConfiguration();
 
@@ -167,7 +166,7 @@ export const oidcHandleCallback = t.procedure
       const userInfo = userInfoResponse.data;
       const userInfoJson = userInfo as unknown as JsonValue;
 
-      auditLog(`oidc:user-info`, {
+      log.info(`oidc:user-info`, {
         userInfo: userInfoJson,
       });
 
@@ -216,7 +215,7 @@ export const oidcHandleCallback = t.procedure
       // Generate JWT tokens using existing auth system
       const appTokens = await generateTokensFromUser(ctx, user);
 
-      auditLog(`trpc.oidc.login`, { username } as unknown as JsonValue);
+      log.info(`trpc.oidc.login`, { username } as unknown as JsonValue);
 
       // Return tokens and user info
       return {
