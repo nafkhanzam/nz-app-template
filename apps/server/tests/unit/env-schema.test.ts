@@ -25,16 +25,22 @@ describe("parseEnv", () => {
 
     expect(result.success).toBe(true);
     if (!result.success) return;
-    expect(result.env.OIDC_ENABLED).toBe(false);
+    expect(result.env.oidc).toBeNull();
     expect(result.env.LOKI_URL).toBeUndefined();
   });
 
-  it("enables OIDC only once every setting is present", () => {
+  it("builds env.oidc only once every setting is present", () => {
     const partial = parseEnv({ ...base, OIDC_ISSUER: oidc.OIDC_ISSUER });
     const complete = parseEnv({ ...base, ...oidc });
 
-    expect(partial.success && partial.env.OIDC_ENABLED).toBe(false);
-    expect(complete.success && complete.env.OIDC_ENABLED).toBe(true);
+    expect(partial.success && partial.env.oidc).toBeNull();
+    expect(complete.success && complete.env.oidc).toEqual({
+      issuer: oidc.OIDC_ISSUER,
+      clientId: oidc.OIDC_CLIENT_ID,
+      clientSecret: oidc.OIDC_CLIENT_SECRET,
+      redirectUri: oidc.OIDC_REDIRECT_URI,
+      state: "",
+    });
   });
 
   it("rejects a missing APP_NAME instead of defaulting to the package name", () => {

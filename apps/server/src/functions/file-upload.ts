@@ -81,7 +81,7 @@ export const getUploadUrl = tuser
     });
 
     // Log the upload request
-    ctx.auditLog("file-upload:get-presigned-url", {
+    ctx.log.info("file-upload:get-presigned-url", {
       key,
       filename,
       contentType,
@@ -104,7 +104,7 @@ export const confirmUpload = tuser
       key: z.string().min(1),
     }),
   )
-  .mutation(async ({ input, ctx: { userDb, auditLog } }) => {
+  .mutation(async ({ input, ctx: { userDb, log } }) => {
     const { key } = input;
 
     // Check if file exists in S3 and get its size
@@ -123,7 +123,7 @@ export const confirmUpload = tuser
     });
 
     // Log the successful upload
-    auditLog("file-upload:confirmed", {
+    log.info("file-upload:confirmed", {
       key: file.key,
       filename: file.filename,
       size,

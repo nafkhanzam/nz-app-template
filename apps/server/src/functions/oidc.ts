@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { generateTokensFromUser } from "../common.js";
 import { env } from "../env.js";
+import { type OidcSettings } from "../env-schema.js";
 import { axios, type JsonValue, renderIf, z } from "../lib.js";
 import { t } from "../trpc.js";
 import { db } from "../db.js";
@@ -52,36 +53,15 @@ interface OIDCConfiguration {
   issuer: string;
 }
 
-interface OidcSettings {
-  issuer: string;
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
-  state: string;
-}
-
-/** OIDC is opt-in; narrow the optional env once instead of at each use site. */
+/** env.oidc is the single source of truth for whether OIDC is configured. */
 const requireOidcSettings = (): OidcSettings => {
-  const { OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_REDIRECT_URI } =
-    env;
-  if (
-    !OIDC_ISSUER ||
-    !OIDC_CLIENT_ID ||
-    !OIDC_CLIENT_SECRET ||
-    !OIDC_REDIRECT_URI
-  ) {
+  if (!env.oidc) {
     throw new TRPCError({
       code: "PRECONDITION_FAILED",
       message: "OIDC login is not configured on this server.",
     });
   }
-  return {
-    issuer: OIDC_ISSUER,
-    clientId: OIDC_CLIENT_ID,
-    clientSecret: OIDC_CLIENT_SECRET,
-    redirectUri: OIDC_REDIRECT_URI,
-    state: env.OIDC_STATE ?? "",
-  };
+  return env.oidc;
 };
 
 // Cache for OIDC configuration to avoid repeated requests
@@ -144,7 +124,7 @@ export const oidcHandleCallback = t.procedure
       code: z.string(),
     }),
   )
-  .mutation(async ({ ctx, ctx: { db, auditLog }, input }) => {
+  .mutation(async ({ ctx, ctx: { db, log }, input }) => {
     try {
       const oidc = requireOidcSettings();
       const config = await getOIDCConfiguration();
@@ -201,7 +181,7 @@ export const oidcHandleCallback = t.procedure
       const userInfo = userInfoResponse.data;
       const userInfoJson = userInfo as unknown as JsonValue;
 
-      auditLog(`oidc:user-info`, {
+      log.info(`oidc:user-info`, {
         userInfo: userInfoJson,
       });
 
@@ -250,7 +230,7 @@ export const oidcHandleCallback = t.procedure
       // Generate JWT tokens using existing auth system
       const appTokens = await generateTokensFromUser(ctx, user);
 
-      auditLog(`trpc.oidc.login`, { username });
+      log.info(`trpc.oidc.login`, { username });
 
       // Return tokens and user info
       return {

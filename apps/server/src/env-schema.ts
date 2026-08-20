@@ -55,18 +55,32 @@ export const envSchema = z.object({
 
 export type ParsedEnv = z.infer<typeof envSchema>;
 
+export interface OidcSettings {
+  issuer: string;
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  state: string;
+}
+
 export type Env = ParsedEnv & {
-  /** True only when every OIDC setting is present. */
-  OIDC_ENABLED: boolean;
+  /** Non-null only when every OIDC setting is present. */
+  oidc: OidcSettings | null;
 };
 
-export const isOidcEnabled = (e: ParsedEnv) =>
-  Boolean(
-    e.OIDC_ISSUER &&
-      e.OIDC_CLIENT_ID &&
-      e.OIDC_CLIENT_SECRET &&
-      e.OIDC_REDIRECT_URI,
-  );
+const buildOidcSettings = (e: ParsedEnv): OidcSettings | null => {
+  const { OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_REDIRECT_URI } = e;
+  if (!OIDC_ISSUER || !OIDC_CLIENT_ID || !OIDC_CLIENT_SECRET || !OIDC_REDIRECT_URI) {
+    return null;
+  }
+  return {
+    issuer: OIDC_ISSUER,
+    clientId: OIDC_CLIENT_ID,
+    clientSecret: OIDC_CLIENT_SECRET,
+    redirectUri: OIDC_REDIRECT_URI,
+    state: e.OIDC_STATE ?? "",
+  };
+};
 
 export type ParseEnvResult =
   | { success: true; env: Env }
@@ -82,6 +96,6 @@ export const parseEnv = (
   }
   return {
     success: true,
-    env: { ...parsed.data, OIDC_ENABLED: isOidcEnabled(parsed.data) },
+    env: { ...parsed.data, oidc: buildOidcSettings(parsed.data) },
   };
 };

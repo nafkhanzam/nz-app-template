@@ -13,7 +13,7 @@ export const refresh = t.procedure
       refreshToken: z.string().nonempty(),
     }),
   )
-  .mutation(async ({ ctx, ctx: { db, auditLog }, input }) => {
+  .mutation(async ({ ctx, ctx: { db, log }, input }) => {
     const payload = verifyRefreshToken(input.refreshToken);
     const refresh = await db.refreshToken.findUnique({
       where: {
@@ -45,7 +45,7 @@ export const refresh = t.procedure
       },
     });
 
-    auditLog(`trpc.refresh`, { accessToken, refreshToken });
+    log.info(`trpc.refresh`, { accessToken, refreshToken });
 
     return { accessToken, refreshToken };
   });

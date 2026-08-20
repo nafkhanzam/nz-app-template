@@ -18,13 +18,15 @@ COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
 COPY . .
 WORKDIR /app/apps/web
-ARG ENV_FILE
-RUN echo "$ENV_FILE" >> .env
 RUN pnpm build
 
-# Production image with nginx
-FROM nginx:alpine AS runner
-COPY --from=builder /app/apps/web/build /usr/share/nginx/html
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+# Production image with Caddy. No build ARG for env: PUBLIC_* is injected at
+# container start by docker-entrypoint.sh, so one image serves any environment.
+FROM caddy:2.11-alpine AS runner
+COPY --from=builder /app/apps/web/build /srv
+COPY apps/web/Caddyfile /etc/caddy/Caddyfile
+COPY apps/web/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

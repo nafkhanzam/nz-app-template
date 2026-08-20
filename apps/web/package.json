@@ -21,7 +21,9 @@
     "test:record": "playwright codegen http://localhost:5173 --output tests/recorded.spec.ts",
     "test:record:user1": "playwright codegen http://localhost:5173 --output tests/_temp-user1.spec.ts",
     "test:record:user2": "playwright codegen http://localhost:5173 --output tests/_temp-user2.spec.ts",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "test:unit": "vitest run tests/unit",
+    "test:unit:watch": "vitest tests/unit"
   },
   "devDependencies": {
     "@iconify/svelte": "5.2.2",
@@ -54,6 +56,7 @@
     "typescript": "6.0.3",
     "vite": "8.1.3",
     "vite-plugin-node-polyfills": "0.28.0",
+    "vitest": "^4.1.10",
     "zenstack-trpc": "0.2.5",
     "zod": "4.4.3"
   }

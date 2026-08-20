@@ -12,8 +12,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "dotenv": "17.4.2",
+    "tsx": "4.23.0",
     "typescript": "6.0.3",
     "zod": "4.3.6"
-  },
-  "packageManager": "pnpm@10.18.3"
+  }
 }
