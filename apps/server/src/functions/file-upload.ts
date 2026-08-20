@@ -69,7 +69,7 @@ export const getUploadUrl = tuser
     });
 
     // Create File record with PENDING status
-    const file = await ctx.userDb.file.create({
+    await ctx.userDb.file.create({
       data: {
         userId: ctx.user.id,
         key,

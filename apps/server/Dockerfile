@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM node:22-alpine AS base
-RUN corepack enable && corepack prepare pnpm --activate
+RUN corepack enable && corepack prepare pnpm@10.18.3 --activate
 WORKDIR /app
 
 # Install dependencies
@@ -21,6 +21,9 @@ RUN pnpm generate && pnpm build
 
 # Production image
 FROM base AS runner
+# Baked in at build time by build.yml; read at runtime by health.ts for /health/version.
+ARG GIT_SHA
+ENV GIT_SHA=$GIT_SHA
 ENV APP_ENV=production
 WORKDIR /app/apps/server
 

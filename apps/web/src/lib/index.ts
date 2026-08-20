@@ -2,6 +2,7 @@ import { config } from "$lib/config";
 import type { CreateQueryResult } from "@tanstack/svelte-query";
 import { TRPCClientError } from "@trpc/client";
 import { customAlphabet } from "nanoid";
+import type { AppRouter } from "../../../server/src/router";
 import toast from "svelte-french-toast";
 export { toast };
 import * as z from "zod";
@@ -20,8 +21,12 @@ export const nanoid = customAlphabet(
   [...genCharArray("a", "z"), ...genCharArray("A", "Z"), ...genCharArray("0", "9")].join(""),
 );
 
-export function isTRPCClientError(cause: unknown): cause is TRPCClientError<any> {
+export function isTRPCClientError(cause: unknown): cause is TRPCClientError<AppRouter> {
   return cause instanceof TRPCClientError;
+}
+
+export function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 const serverErrorV = z.object({
@@ -29,7 +34,7 @@ const serverErrorV = z.object({
   info: z.object({
     message: z.string(),
     stack: z.string().optional(),
-    details: z.any().optional(),
+    details: z.unknown().optional(),
   }),
 });
 export type ServerError = z.infer<typeof serverErrorV>;

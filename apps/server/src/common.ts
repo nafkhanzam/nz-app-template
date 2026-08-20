@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import type { Context } from "./context";
 import { env } from "./env";
-import { bcrypt, jwt, z } from "./lib";
+import { bcrypt, jwt, z, type SignOptions } from "./lib";
 import { jwtPayloadV, type JWTPayload } from "./shared/jwt";
 import type { User } from "./zenstack/models";
 
@@ -17,7 +17,9 @@ export const forbiddenError = new TRPCError({
 
 export const buildAccessToken = (payload: JWTPayload): string => {
   const token = jwt.sign(payload, env.JWT_ACCESS_KEY, {
-    expiresIn: env.JWT_ACCESS_EXPIRES_IN as any,
+    // env value is a plain string; jsonwebtoken narrows to a template-literal
+    // union it can't verify statically, so cast to that exact field's type.
+    expiresIn: env.JWT_ACCESS_EXPIRES_IN as SignOptions["expiresIn"],
   });
   return token;
 };
@@ -42,7 +44,7 @@ export const buildRefreshToken = async (ctx: Context, userId: string) => {
     },
   });
   const token = jwt.sign({ id: refreshToken.id }, env.JWT_REFRESH_KEY, {
-    expiresIn: env.JWT_REFRESH_EXPIRES_IN as any,
+    expiresIn: env.JWT_REFRESH_EXPIRES_IN as SignOptions["expiresIn"],
   });
   return token;
 };
@@ -59,6 +61,19 @@ export const hashPassword = (password: string): string => {
   return bcrypt.hashSync(password, SALT_ROUNDS);
 };
 
+/** oidc_userInfo is untyped Json — narrow the one field we actually use. */
+const oidcPicture = (userInfo: unknown): string | undefined => {
+  if (
+    userInfo &&
+    typeof userInfo === "object" &&
+    "picture" in userInfo &&
+    typeof userInfo.picture === "string"
+  ) {
+    return userInfo.picture;
+  }
+  return undefined;
+};
+
 export const generateTokensFromUser = async (ctx: Context, user: User) => {
   const accessToken = buildAccessToken({
     id: user.id,
@@ -66,8 +81,7 @@ export const generateTokensFromUser = async (ctx: Context, user: User) => {
     name: user.name,
     role: user.role,
     email: user.email ?? undefined,
-    // @ts-expect-error checked.
-    image: user.userInfo?.picture ?? undefined,
+    image: oidcPicture(user.oidc_userInfo),
   });
 
   const refreshToken = await buildRefreshToken(ctx, user.id);

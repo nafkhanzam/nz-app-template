@@ -14,7 +14,6 @@ import { register } from "./functions/register.ts";
 import { t } from "./trpc.ts";
 import { createZenStackRouter } from "zenstack-trpc";
 import { schema } from "./zenstack/schema.ts";
-import type { AnyRouter } from "@trpc/server";
 
 export const appRouter = t.router({
   hello,
@@ -29,7 +28,7 @@ export const appRouter = t.router({
   changePassword,
   getUploadUrl,
   confirmUpload,
-  crud: createZenStackRouter(schema, t) as unknown as AnyRouter,
+  crud: createZenStackRouter(schema, t),
 });
 
 export type AppRouter = typeof appRouter;

@@ -114,23 +114,36 @@ import { schema } from "./zenstack/schema";
     });
   });
 
-  // Error handler middleware - must be defined after all routes
-  app.use((err: any, _req: any, res: any, _next: any) => {
-    console.error("Uncaught error:", err);
+  // Error handler middleware - must be defined after all routes. Express
+  // recognizes this as an error handler by its 4-parameter arity.
+  app.use(
+    (
+      err: unknown,
+      _req: express.Request,
+      res: express.Response,
+      _next: express.NextFunction,
+    ) => {
+      console.error("Uncaught error:", err);
 
-    const statusCode = err.statusCode || err.status || 500;
-    const message = err.message || "Internal server error";
+      const isErrorLike = (e: unknown): e is Record<string, unknown> =>
+        typeof e === "object" && e !== null;
+      const statusCode =
+        (isErrorLike(err) && (err.statusCode ?? err.status)) || 500;
+      const message =
+        (isErrorLike(err) && typeof err.message === "string" && err.message) ||
+        "Internal server error";
 
-    res.status(statusCode).json({
-      error: {
-        message,
-        ...(env.VERBOSE && {
-          stack: err.stack,
-          details: err,
-        }),
-      },
-    });
-  });
+      res.status(Number(statusCode)).json({
+        error: {
+          message,
+          ...(env.VERBOSE && {
+            stack: isErrorLike(err) ? err.stack : undefined,
+            details: err,
+          }),
+        },
+      });
+    },
+  );
 
   app.listen(env.PORT, () => {
     console.log(`Listening on port ${env.PORT}...`);

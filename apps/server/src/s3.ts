@@ -2,6 +2,7 @@ import {
   S3Client,
   PutObjectCommand,
   HeadObjectCommand,
+  type HeadObjectCommandOutput,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { TRPCError } from "@trpc/server";
@@ -90,32 +91,34 @@ export const getFileUrl = (key: string): string => {
 export const getFileSize = async (
   key: string,
 ): Promise<{ size: number; contentType: string }> => {
+  // Only the S3 call itself falls back to a generic "does not exist" — the
+  // two validation throws below must propagate with their own message, not
+  // get swallowed by the same catch.
+  let res: HeadObjectCommandOutput;
   try {
-    const headCommand = new HeadObjectCommand({
-      Bucket: env.AWS_S3_BUCKET,
-      Key: key,
-    });
-    const res = await s3.send(headCommand);
-    if (res.ContentLength === undefined) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `File with key ${key} does not have Content-Length.`,
-      });
-    }
-    if (!res.ContentType) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `File with key ${key} does not have Content-Type.`,
-      });
-    }
-    return {
-      size: res.ContentLength,
-      contentType: res.ContentType,
-    };
+    res = await s3.send(new HeadObjectCommand({ Bucket: env.AWS_S3_BUCKET, Key: key }));
   } catch (error) {
+    console.error(`HeadObject failed for key ${key}:`, error);
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: `File with key ${key} does not exist in S3`,
     });
   }
+
+  if (res.ContentLength === undefined) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `File with key ${key} does not have Content-Length.`,
+    });
+  }
+  if (!res.ContentType) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `File with key ${key} does not have Content-Type.`,
+    });
+  }
+  return {
+    size: res.ContentLength,
+    contentType: res.ContentType,
+  };
 };

@@ -16,11 +16,13 @@ interface OIDCTokenResponse {
 }
 
 export interface SsoGroup {
+  [key: string]: string;
   group_id: string;
   group_name: string;
 }
 
 interface OIDCUserInfo {
+  [key: string]: JsonValue | null | undefined;
   sub: string;
   name?: string;
   role?: string[];
@@ -53,6 +55,10 @@ interface OIDCConfiguration {
   issuer: string;
 }
 
+/** Prefer the provider's own error body over axios's generic message. */
+const describeError = (error: unknown): unknown =>
+  axios.isAxiosError(error) ? (error.response?.data ?? error.message) : error;
+
 /** env.oidc is the single source of truth for whether OIDC is configured. */
 const requireOidcSettings = (): OidcSettings => {
   if (!env.oidc) {
@@ -80,11 +86,8 @@ async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
     const response = await axios.get<OIDCConfiguration>(configUrl);
     oidcConfigCache = response.data;
     return oidcConfigCache;
-  } catch (error: any) {
-    console.error(
-      "Failed to fetch OIDC configuration:",
-      error.response?.data || error.message,
-    );
+  } catch (error) {
+    console.error("Failed to fetch OIDC configuration:", describeError(error));
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Failed to fetch OIDC provider configuration",
@@ -147,11 +150,8 @@ export const oidcHandleCallback = t.procedure
             },
           },
         )
-        .catch((error: any) => {
-          console.error(
-            "Token exchange failed:",
-            error.response?.data || error.message,
-          );
+        .catch((error: unknown) => {
+          console.error("Token exchange failed:", describeError(error));
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to exchange code for token",
@@ -167,11 +167,8 @@ export const oidcHandleCallback = t.procedure
             Authorization: `Bearer ${tokens.access_token}`,
           },
         })
-        .catch((error: any) => {
-          console.error(
-            "User info fetch failed:",
-            error.response?.data || error.message,
-          );
+        .catch((error: unknown) => {
+          console.error("User info fetch failed:", describeError(error));
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to fetch user info",
@@ -179,7 +176,9 @@ export const oidcHandleCallback = t.procedure
         });
 
       const userInfo = userInfoResponse.data;
-      const userInfoJson = userInfo as unknown as JsonValue;
+      // OIDCUserInfo carries an index signature (above) so this is a direct,
+      // structurally valid cast — not a type-system escape hatch.
+      const userInfoJson = userInfo as JsonValue;
 
       log.info(`oidc:user-info`, {
         userInfo: userInfoJson,

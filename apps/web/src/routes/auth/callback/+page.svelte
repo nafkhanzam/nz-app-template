@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { toast } from "$lib";
+  import { errorMessage, toast } from "$lib";
   import { token, refresh } from "$lib/stores/token.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
@@ -29,9 +29,9 @@
 
       // Redirect to home or previous page
       goto("/");
-    } catch (err: any) {
+    } catch (err) {
       console.error("OIDC callback error:", err);
-      error = err.message || "Failed to complete SSO login";
+      error = errorMessage(err, "Failed to complete SSO login");
       toast.error(error);
       isLoading = false;
     }
