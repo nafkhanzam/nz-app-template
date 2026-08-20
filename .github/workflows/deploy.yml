@@ -12,15 +12,19 @@ on:
       - deploy/**
       - .github/workflows/**
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   APP_ENV: ${{ github.ref_name }}
 
 jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
   deploy:
-    # Still off: this deploys onto infrastructure that does not exist yet —
-    # no GHCR images (Langkah 5), no VPS stack (Langkah 6), no real
-    # blue-green (Langkah 7). See deploy/legacy/blue-green-deploy.sh.
-    if: false
+    needs: build
     name: Deploy to VPS
     runs-on: self-hosted
     environment: ${{ github.ref_name }}
@@ -28,6 +32,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # deploy.sh diffs migration files between this commit and the
+          # previously-deployed one (state.json) to detect breaking
+          # migrations (§4.7) — needs full history, not the default shallow
+          # single-commit clone, or that diff would fail outright.
+          fetch-depth: 0
 
       # server.sops.yaml references $POSTGRES_PASSWORD (from infra.sops.yaml)
       # and $APP_NAME/$BASE_DOMAIN (from deploy/env/production.env) — these
@@ -50,5 +60,17 @@ jobs:
       - name: Validate apps/server/.env against the runtime schema
         run: pnpm exec tsx scripts/validate-env.ts apps/server/.env
 
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Blue-green deploy
-        run: bash deploy/legacy/blue-green-deploy.sh
+        run: |
+          bash deploy/deploy.sh \
+            "${{ env.APP_ENV }}" \
+            "${{ needs.build.outputs.server_digest }}" \
+            "${{ needs.build.outputs.web_digest }}" \
+            "${{ github.sha }}"
