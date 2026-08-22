@@ -3,11 +3,17 @@
 # (self-hosted runner checkout), after apps/server/.env and apps/web/.env
 # have already been written from the decrypted secrets (see deploy.yml).
 #
-# Usage: deploy.sh <env> <server_digest> <web_digest> <git_sha>
-#   server_digest / web_digest : ghcr.io/<owner>/<app>-{server,web}@sha256:...
-#   git_sha                    : full commit SHA being deployed (baked into
-#                                 the server image as GIT_SHA, used here to
-#                                 diff which migration files are new)
+# Usage: deploy.sh <env> <server_image> <web_image> <git_sha>
+#   server_image / web_image : full ref *with digest*, e.g.
+#                               ghcr.io/<owner>/<app>-server@sha256:...
+#                               Passed as the full ref (not just the digest)
+#                               so this script never has to know or guess the
+#                               GHCR owner — this is a template meant to be
+#                               forked under any owner (deploy.yml derives it
+#                               from github.repository).
+#   git_sha                  : full commit SHA being deployed (baked into
+#                               the server image as GIT_SHA, used here to
+#                               diff which migration files are new)
 #
 # Prerequisites this script assumes already exist (Langkah 6, not this
 # script's job to create): docker networks `edge`/`appnet`, a running
@@ -15,10 +21,10 @@
 # compose.services.yml (postgres+garage) up. Also needs `jq` on the VPS.
 set -euo pipefail
 
-ENV="${1:?usage: deploy.sh <env> <server_digest> <web_digest> <git_sha>}"
-SERVER_DIGEST="${2:?usage: deploy.sh <env> <server_digest> <web_digest> <git_sha>}"
-WEB_DIGEST="${3:?usage: deploy.sh <env> <server_digest> <web_digest> <git_sha>}"
-GIT_SHA="${4:?usage: deploy.sh <env> <server_digest> <web_digest> <git_sha>}"
+ENV="${1:?usage: deploy.sh <env> <server_image> <web_image> <git_sha>}"
+SERVER_IMAGE="${2:?usage: deploy.sh <env> <server_image> <web_image> <git_sha>}"
+WEB_IMAGE="${3:?usage: deploy.sh <env> <server_image> <web_image> <git_sha>}"
+GIT_SHA="${4:?usage: deploy.sh <env> <server_image> <web_image> <git_sha>}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -27,9 +33,6 @@ cd "$REPO_ROOT"
 set -a; source "deploy/env/${ENV}.env"; set +a
 # shellcheck source=_common.sh
 source "deploy/_common.sh"
-
-SERVER_IMAGE="ghcr.io/nafkhanzam/${APP_NAME}-server@${SERVER_DIGEST}"
-WEB_IMAGE="ghcr.io/nafkhanzam/${APP_NAME}-web@${WEB_DIGEST}"
 
 mkdir -p "$SLOTS_DIR" "$BACKUPS_DIR"
 
@@ -112,16 +115,7 @@ APP_NAME="$APP_NAME" APP_ENV="$APP_ENV" SLOT="$TARGET_SLOT" \
 # 7. Poll readiness. Timeout aborts without touching the old slot (unless
 #    already stopped above for a breaking migration — see note there).
 echo "Waiting for $TARGET_SLOT to become ready..."
-READY=false
-for _ in $(seq 1 30); do
-  if docker exec "${APP_NAME}-${APP_ENV}-server-${TARGET_SLOT}" \
-      wget -qO- http://localhost:3000/health/ready > /dev/null 2>&1; then
-    READY=true
-    break
-  fi
-  sleep 2
-done
-if [ "$READY" != true ]; then
+if ! wait_for_ready "$TARGET_SLOT"; then
   echo "Slot $TARGET_SLOT failed to become ready — aborting, tearing it down." >&2
   APP_NAME="$APP_NAME" APP_ENV="$APP_ENV" SLOT="$TARGET_SLOT" \
     SERVER_IMAGE="$SERVER_IMAGE" WEB_IMAGE="$WEB_IMAGE" \
@@ -140,7 +134,7 @@ reload_caddy
 
 # 9. Verify the switch actually took effect through the public domain.
 echo "Verifying https://${SERVER_DOMAIN}/health/version..."
-LIVE_SHA="$(curl -sf "https://${SERVER_DOMAIN}/health/version" | jq -r '.sha')"
+LIVE_SHA="$(verify_public_sha)"
 if [ "$LIVE_SHA" != "$GIT_SHA" ]; then
   echo "Public domain reports sha=$LIVE_SHA, expected $GIT_SHA. Traffic did not switch as expected — investigate manually (do not assume rollback.sh alone fixes this)." >&2
   exit 1
@@ -157,21 +151,23 @@ if [ "$BREAKING" != true ] && [ -n "$ACTIVE_SLOT" ]; then
 fi
 
 # 11. state.json is the only source of truth for the next deploy/rollback.
+# Stores full image refs (not bare digests) so rollback.sh never has to
+# reconstruct — and therefore never has to guess — the GHCR owner.
 NEW_STATE="$(jq -n \
   --arg active "$TARGET_SLOT" \
   --arg sha "$GIT_SHA" \
-  --arg server_digest "$SERVER_DIGEST" \
-  --arg web_digest "$WEB_DIGEST" \
+  --arg server_image "$SERVER_IMAGE" \
+  --arg web_image "$WEB_IMAGE" \
   --argjson breaking "$BREAKING" \
   --argjson previous "$(
     if [ -n "$ACTIVE_SLOT" ]; then
       echo "$STATE" | jq \
         --arg slot "$ACTIVE_SLOT" \
-        '{slot: $slot, sha: .sha, server_digest: .server_digest, web_digest: .web_digest}'
+        '{slot: $slot, sha: .sha, server_image: .server_image, web_image: .web_image}'
     else
       echo null
     fi
   )" \
-  '{active: $active, sha: $sha, server_digest: $server_digest, web_digest: $web_digest, breaking: $breaking, previous: $previous}')"
+  '{active: $active, sha: $sha, server_image: $server_image, web_image: $web_image, breaking: $breaking, previous: $previous}')"
 echo "$NEW_STATE" > "$STATE_FILE"
 echo "Deploy complete. Active slot: $TARGET_SLOT."

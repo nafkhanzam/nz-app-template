@@ -31,11 +31,29 @@ const stripSqlComments = (sql: string): string =>
     .map((line) => line.replace(/--.*$/, ""))
     .join("\n");
 
+// A required column with no default is exactly as breaking as the patterns
+// above: the old slot's still-running code doesn't know to write it, and
+// every insert it makes violates the constraint until it's drained. This
+// needs per-statement scope (does *this* ADD COLUMN also carry a DEFAULT?),
+// not a single regex — a DEFAULT elsewhere in the file must not mask it.
+const hasRequiredColumnWithoutDefault = (body: string): boolean =>
+  body
+    .split(";")
+    .some(
+      (statement) =>
+        /\bADD\s+COLUMN\b/i.test(statement) &&
+        /\bNOT\s+NULL\b/i.test(statement) &&
+        !/\bDEFAULT\b/i.test(statement),
+    );
+
 export const classifyMigrationSql = (sql: string): MigrationClassification => {
   const body = stripSqlComments(sql);
   const reasons = BREAKING_PATTERNS.filter(({ pattern }) => pattern.test(body)).map(
     ({ label }) => label,
   );
+  if (hasRequiredColumnWithoutDefault(body)) {
+    reasons.push("ADD COLUMN ... NOT NULL without DEFAULT");
+  }
   return { breaking: reasons.length > 0, reasons };
 };
 

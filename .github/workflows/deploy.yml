@@ -57,6 +57,20 @@ jobs:
             <(sops -d --output-type dotenv secrets/${{ env.APP_ENV }}/web.sops.yaml) \
             > apps/web/.env
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Validate apps/server/.env against the runtime schema
         run: pnpm exec tsx scripts/validate-env.ts apps/server/.env
 
@@ -71,6 +85,6 @@ jobs:
         run: |
           bash deploy/deploy.sh \
             "${{ env.APP_ENV }}" \
-            "${{ needs.build.outputs.server_digest }}" \
-            "${{ needs.build.outputs.web_digest }}" \
+            "ghcr.io/${{ github.repository }}-server@${{ needs.build.outputs.server_digest }}" \
+            "ghcr.io/${{ github.repository }}-web@${{ needs.build.outputs.web_digest }}" \
             "${{ github.sha }}"

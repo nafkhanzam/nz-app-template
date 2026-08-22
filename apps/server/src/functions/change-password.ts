@@ -17,14 +17,14 @@ export const changePassword = tuser
 
     const found = await db.user.findUnique({
       where: { username: user.username },
-      select: { username: true, password: true },
+      select: { username: true, passwordHash: true },
     });
-    if (!found?.password) {
+    if (!found?.passwordHash) {
       throw unauthorizedError;
     }
 
     // old must match
-    if (!bcrypt.compareSync(input.oldPassword, found.password)) {
+    if (!bcrypt.compareSync(input.oldPassword, found.passwordHash)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "Wrong old password.",
@@ -32,7 +32,7 @@ export const changePassword = tuser
     }
 
     // new must be different from old
-    if (bcrypt.compareSync(input.newPassword, found.password)) {
+    if (bcrypt.compareSync(input.newPassword, found.passwordHash)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "New password must be different from the old password.",
@@ -45,9 +45,9 @@ export const changePassword = tuser
       data: { passwordHash: newHashed },
     });
 
-    log.info(`changePassword`, {
-      input,
-    });
+    // Never log input verbatim — it's the old/new plaintext passwords, and
+    // logs go to stdout/Loki, which far more people can read than the DB.
+    log.info(`changePassword`, { username: found.username });
 
     return { success: true };
   });

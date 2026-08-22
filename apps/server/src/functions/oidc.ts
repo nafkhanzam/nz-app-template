@@ -180,9 +180,9 @@ export const oidcHandleCallback = t.procedure
       // structurally valid cast — not a type-system escape hatch.
       const userInfoJson = userInfo as JsonValue;
 
-      log.info(`oidc:user-info`, {
-        userInfo: userInfoJson,
-      });
+      // Log only the identifier, not the full PII blob — logs go to
+      // stdout/Loki, which far more people can read than the DB.
+      log.info(`oidc:user-info`, { sub: userInfo.sub });
 
       // Create or update user in database
       const oidc_sub = userInfo.sub;

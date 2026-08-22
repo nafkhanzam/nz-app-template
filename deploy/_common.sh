@@ -26,7 +26,7 @@ state_read() {
   if [ -f "$STATE_FILE" ]; then
     cat "$STATE_FILE"
   else
-    echo '{"active":null,"sha":null,"server_digest":null,"web_digest":null,"breaking":false,"previous":null}'
+    echo '{"active":null,"sha":null,"server_image":null,"web_image":null,"breaking":false,"previous":null}'
   fi
 }
 
@@ -49,4 +49,23 @@ write_slot_file() {
 
 reload_caddy() {
   docker exec caddy-edge caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+}
+
+# Shared by deploy.sh and rollback.sh so a future tweak (retry count,
+# timeout, health path) can't drift between the two scripts.
+wait_for_ready() {
+  local slot="$1"
+  for _ in $(seq 1 30); do
+    if docker exec "${APP_NAME}-${APP_ENV}-server-${slot}" \
+        wget -qO- http://localhost:3000/health/ready > /dev/null 2>&1; then
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+# Prints the live sha on stdout; caller compares it to what it expected.
+verify_public_sha() {
+  curl -sf "https://${SERVER_DOMAIN}/health/version" | jq -r '.sha'
 }

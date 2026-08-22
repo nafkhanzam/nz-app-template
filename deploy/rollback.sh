@@ -48,10 +48,9 @@ fi
 
 PREV_SLOT="$(echo "$PREVIOUS" | jq -r '.slot')"
 PREV_SHA="$(echo "$PREVIOUS" | jq -r '.sha')"
-PREV_SERVER_DIGEST="$(echo "$PREVIOUS" | jq -r '.server_digest')"
-PREV_WEB_DIGEST="$(echo "$PREVIOUS" | jq -r '.web_digest')"
-SERVER_IMAGE="ghcr.io/nafkhanzam/${APP_NAME}-server@${PREV_SERVER_DIGEST}"
-WEB_IMAGE="ghcr.io/nafkhanzam/${APP_NAME}-web@${PREV_WEB_DIGEST}"
+# Full refs stored as-is by deploy.sh — no owner to reconstruct/guess here.
+SERVER_IMAGE="$(echo "$PREVIOUS" | jq -r '.server_image')"
+WEB_IMAGE="$(echo "$PREVIOUS" | jq -r '.web_image')"
 
 echo "Rolling back: $ACTIVE_SLOT -> $PREV_SLOT (sha $PREV_SHA)"
 
@@ -62,16 +61,7 @@ APP_NAME="$APP_NAME" APP_ENV="$APP_ENV" SLOT="$PREV_SLOT" \
   docker compose -p "${APP_NAME}-${APP_ENV}-${PREV_SLOT}" -f deploy/docker-compose.app.yml start
 
 echo "Waiting for $PREV_SLOT to become ready..."
-READY=false
-for _ in $(seq 1 30); do
-  if docker exec "${APP_NAME}-${APP_ENV}-server-${PREV_SLOT}" \
-      wget -qO- http://localhost:3000/health/ready > /dev/null 2>&1; then
-    READY=true
-    break
-  fi
-  sleep 2
-done
-if [ "$READY" != true ]; then
+if ! wait_for_ready "$PREV_SLOT"; then
   echo "Slot $PREV_SLOT did not become ready — aborting rollback, current slot ($ACTIVE_SLOT) left untouched." >&2
   exit 1
 fi
@@ -81,7 +71,7 @@ write_slot_file web "$PREV_SLOT"
 reload_caddy
 
 echo "Verifying https://${SERVER_DOMAIN}/health/version..."
-LIVE_SHA="$(curl -sf "https://${SERVER_DOMAIN}/health/version" | jq -r '.sha')"
+LIVE_SHA="$(verify_public_sha)"
 if [ "$LIVE_SHA" != "$PREV_SHA" ]; then
   echo "Public domain reports sha=$LIVE_SHA, expected $PREV_SHA. Investigate manually." >&2
   exit 1
@@ -93,9 +83,9 @@ docker compose -p "${APP_NAME}-${APP_ENV}-${ACTIVE_SLOT}" -f deploy/docker-compo
 jq -n \
   --arg active "$PREV_SLOT" \
   --arg sha "$PREV_SHA" \
-  --arg server_digest "$PREV_SERVER_DIGEST" \
-  --arg web_digest "$PREV_WEB_DIGEST" \
-  '{active: $active, sha: $sha, server_digest: $server_digest, web_digest: $web_digest, breaking: false, previous: null}' \
+  --arg server_image "$SERVER_IMAGE" \
+  --arg web_image "$WEB_IMAGE" \
+  '{active: $active, sha: $sha, server_image: $server_image, web_image: $web_image, breaking: false, previous: null}' \
   > "$STATE_FILE"
 
 echo "Rollback complete. Active slot: $PREV_SLOT."

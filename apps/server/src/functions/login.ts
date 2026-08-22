@@ -30,7 +30,9 @@ export const login = t.procedure
 
     const tokens = await generateTokensFromUser(ctx, user);
 
-    log.info(`trpc.login`, { tokens });
+    // Never log the tokens themselves — logs go to stdout/Loki, which far
+    // more people can read than the DB.
+    log.info(`trpc.login`, { username: user.username });
 
     return tokens;
   });

@@ -45,7 +45,9 @@ export const refresh = t.procedure
       },
     });
 
-    log.info(`trpc.refresh`, { accessToken, refreshToken });
+    // Never log the tokens themselves — logs go to stdout/Loki, which far
+    // more people can read than the DB.
+    log.info(`trpc.refresh`, { username: user.username });
 
     return { accessToken, refreshToken };
   });
