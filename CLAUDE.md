@@ -44,6 +44,10 @@ Garage replaces MinIO (community edition archived April 2026). It exposes two
 ports: `3900` for signed S3 calls and `3902` for anonymous reads, where the
 bucket is taken from the first label of the host.
 
+This root `docker-compose.services.yml` is for **local dev only** (ports published,
+default passwords). Production has its own separate compose files under `deploy/` —
+see Deployment below.
+
 ## Architecture
 
 Pnpm monorepo with two workspaces: `apps/server` and `apps/web`. Web imports server types directly via workspace link (`"server": "link:../server"`).
@@ -52,13 +56,13 @@ Pnpm monorepo with two workspaces: `apps/server` and `apps/web`. Web imports ser
 
 Express + tRPC + ZenStack v3 on PostgreSQL via Kysely.
 
-- **`src/zenstack/`** — ZenStack schema files (`.zmodel`) and generated outputs (`schema.ts`, `models.ts`, `input.ts`). `core.zmodel` defines base types and core models (User, File, AuditLog, RefreshToken). `app.zmodel` has app-specific models. **Edit `.zmodel` files, then run `pnpm generate`.**
+- **`src/zenstack/`** — ZenStack schema files (`.zmodel`) and generated outputs (`schema.ts`, `models.ts`, `input.ts`). `core.zmodel` defines base types and core models (User, File, RefreshToken, Post). `app.zmodel` has app-specific models. **Edit `.zmodel` files, then run `pnpm generate`.** `migrations/` lives here too (not at `apps/server/migrations/`) because Prisma puts migration history next to the schema it was generated from.
 - **`src/db.ts`** — `ZenStackClient` (raw, no policies) as `db`; `authDb = db.$use(new PolicyPlugin())` enforces access policies. Always use `userDb` (context-scoped, auth set) inside tRPC handlers for policy-enforced queries.
-- **`src/context.ts`** — tRPC context: extracts JWT from `Authorization` header, creates `userDb = authDb.$setAuth(user)`, provides `auditLog` helper.
+- **`src/context.ts`** — tRPC context: extracts JWT from `Authorization` header, creates `userDb = authDb.$setAuth(user)`, provides `log` (per-request logger — see Logging below).
 - **`src/trpc.ts`** — `t` (public procedure), `tuser` (authenticated procedure that throws 401 if no user).
 - **`src/router.ts`** — root `appRouter`; CRUD routes auto-generated via `createZenStackRouter(schema, t)` mounted at `crud`.
-- **`src/main.ts`** — Express app. Routes: `/trpc` (tRPC), `/api/model` (ZenStack REST RPC), `/health`.
-- **`src/functions/`** — individual tRPC procedures (login, register, me, refresh, oidc, file-upload, etc.).
+- **`src/main.ts`** — Express app. Routes: `/trpc` (tRPC), `/api/model` (ZenStack REST RPC), `/health/live` (process is up — Docker healthcheck), `/health/ready` (DB + object storage reachable — this is what blue-green deploy polls before switching traffic), `/health/version` (returns `{ sha, appName, appEnv }` — checked against the public domain after a deploy to confirm the switch actually happened).
+- **`src/functions/`** — individual tRPC procedures (login, register, me, refresh, oidc, file-upload, change-password, etc.).
 - **`src/shared/`** — code shared with web (jwt utils, upload helpers). Symlinked/imported by web at `src/lib/shared/`.
 
 ### Web (`apps/web`)
@@ -75,7 +79,13 @@ SvelteKit (static adapter) + TailwindCSS v4 + DaisyUI + TanStack Query.
 
 ### Auth flow
 
-JWT-based dual-token (access + refresh). OIDC login also supported. Access token sent as `Authorization` header (bare token, not `Bearer`). On 401, web auto-refreshes via `/trpc/refresh` mutation. ZenStack access policies use `auth()` which resolves from the token payload (no DB lookup per request).
+JWT-based dual-token (access + refresh). Access token sent as `Authorization` header (bare token, not `Bearer`). On 401, web auto-refreshes via `/trpc/refresh` mutation. ZenStack access policies use `auth()` which resolves from the token payload (no DB lookup per request).
+
+OIDC login is **opt-in**: `env.oidc` (`apps/server/src/env-schema.ts`) is `OidcSettings | null`, non-null only when all four `OIDC_ISSUER`/`OIDC_CLIENT_ID`/`OIDC_CLIENT_SECRET`/`OIDC_REDIRECT_URI` env vars are set. `requireOidcSettings()` in `functions/oidc.ts` throws `PRECONDITION_FAILED` if an OIDC procedure is called while unconfigured — the app boots and runs fine with OIDC completely unset.
+
+### Logging
+
+`src/log.ts` — `createLog()` returns a `tslog` logger; if `LOKI_URL` is set it also ships every line to Loki. **Never pass secrets in a log payload** (tokens, passwords, full OIDC userinfo) — logs reach stdout/`docker logs` always, and Loki whenever it's configured, both wider audiences than the database. `context.ts` already masks `Authorization`/`Cookie` request headers before logging them; that pattern doesn't extend automatically to values you pass yourself, so check what you're logging by hand.
 
 ### File uploads
 
@@ -84,3 +94,37 @@ Presigned S3 URLs: client calls `getUploadUrl` tRPC → gets presigned PUT URL �
 `AWS_S3_ENDPOINT` signs uploads; `PUBLIC_S3_ENDPOINT` serves reads. They are different hosts and must not be swapped — a signature is bound to the host it was made for.
 
 The S3 client sets `requestChecksumCalculation: "WHEN_REQUIRED"`. Without it the SDK signs a CRC32 it cannot compute ahead of the upload, and S3-compatible servers reject the PUT with `InvalidDigest`.
+
+## Deployment
+
+Production deploys are blue-green: two identical slots (`blue`/`green`), each a full
+`server`+`web` pair, behind a Caddy reverse proxy. Only one slot receives traffic at a time.
+Full step-by-step VPS setup is in `README.md`; this is the code map.
+
+- **`deploy/docker-compose.app.yml`** — one slot (server+web), parameterized by `SLOT`/
+  `SERVER_IMAGE`/`WEB_IMAGE` env vars. No ports published — reached only by network alias
+  on the `edge` docker network.
+- **`deploy/docker-compose.services.yml`** / **`docker-compose.proxy.yml`** — the persistent
+  parts (Postgres, Garage, Caddy edge). Brought up once during VPS setup, not per-deploy.
+- **`deploy/_common.sh`** — shared by `deploy.sh`/`rollback.sh`: derives the four domains from
+  `APP_NAME`/`APP_ENV`/`BASE_DOMAIN`, reads/writes `state.json` (the single source of truth for
+  which slot is live — never re-derive this by grepping the Caddyfile), polls readiness, verifies
+  the public domain after a switch.
+- **`deploy/deploy.sh`** — the actual deploy: reads `state.json` → picks the idle slot → detects
+  whether any new migration is breaking (via `scripts/scan-migrations.ts`, comparing against the
+  previously-deployed commit) → migrates → starts the new slot → health-checks it → switches Caddy
+  → verifies → stops the old slot. A breaking migration takes a different, non-zero-downtime path:
+  backup the DB, stop the old slot *before* migrating (they share one DB, so the old slot can't be
+  left running against a schema it doesn't understand), then proceed.
+- **`deploy/rollback.sh`** — flips back to the previous slot (`state.json.previous`). Refuses
+  outright if the last deploy was a breaking migration — the old slot's code no longer matches the
+  schema, so a pointer flip would just crash it. The message it prints points at the DB backup
+  instead.
+- **`scripts/scan-migrations.ts`** — classifies a `migration.sql` file as breaking (`DROP TABLE`,
+  `DROP COLUMN`, `ALTER COLUMN ... TYPE`, `RENAME`, `ADD COLUMN ... NOT NULL` without a `DEFAULT`)
+  or safe, by matching real DDL keywords (not Prisma's own `-- DropTable`-style comments, which
+  render without a space and so never match).
+
+**Known limitation, worth fixing before relying on it further:** `scripts/validate-env.ts` only
+validates `apps/server/.env` against its Zod schema; `apps/web/.env` is written by the same CI/deploy
+steps but never validated, so a broken `PUBLIC_*` value only surfaces at runtime in the browser.
