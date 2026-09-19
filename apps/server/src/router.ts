@@ -11,10 +11,10 @@ import {
 } from "./functions/oidc.js";
 import { refresh } from "./functions/refresh.ts";
 import { register } from "./functions/register.ts";
+import { setupPassword } from "./functions/setup-password.ts";
 import { t } from "./trpc.ts";
 import { createZenStackRouter } from "zenstack-trpc";
 import { schema } from "./zenstack/schema.ts";
-import { AnyRouter } from "@trpc/server";
 
 export const appRouter = t.router({
   hello,
@@ -27,9 +27,10 @@ export const appRouter = t.router({
   me,
   refresh,
   changePassword,
+  setupPassword,
   getUploadUrl,
   confirmUpload,
-  crud: createZenStackRouter(schema, t) as unknown as AnyRouter,
+  crud: createZenStackRouter(schema, t),
 });
 
 export type AppRouter = typeof appRouter;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { toast } from "$lib";
+  import { errorMessage, toast } from "$lib";
   import { token, refresh } from "$lib/stores/token.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
@@ -11,8 +11,15 @@
 
   onMount(async () => {
     try {
-      // Get the authorization code from URL parameters
       const code = page.url.searchParams.get("code");
+      const state = JSON.parse(page.url.searchParams.get("state") ?? "{}");
+
+      // if (state.direct) {
+      //   const sep = (state.direct as string).includes("?") ? "&" : "?";
+      //   location.href = `${state.direct}${sep}${page.url.searchParams.toString()}`;
+      //   return;
+      // }
+      // Get the authorization code from URL parameters
 
       if (!code) {
         throw new Error("No authorization code received");
@@ -28,10 +35,10 @@
       toast.success("Successfully logged in with SSO!");
 
       // Redirect to home or previous page
-      goto("/");
-    } catch (err: any) {
+      goto(state.redirectUrl ?? "/");
+    } catch (err) {
       console.error("OIDC callback error:", err);
-      error = err.message || "Failed to complete SSO login";
+      error = errorMessage(err, "Failed to complete SSO login");
       toast.error(error);
       isLoading = false;
     }

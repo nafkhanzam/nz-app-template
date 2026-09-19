@@ -6,7 +6,7 @@ import {
   getFileSize,
   getFileUrl,
 } from "../s3.ts";
-import { PrefixFile, prefixSizeMap } from "../shared/upload.ts";
+import { prefixSizeMap, type PrefixFile } from "../shared/upload.ts";
 import { tuser } from "../trpc.ts";
 
 /**
@@ -69,7 +69,7 @@ export const getUploadUrl = tuser
     });
 
     // Create File record with PENDING status
-    const file = await ctx.userDb.file.create({
+    await ctx.userDb.file.create({
       data: {
         userId: ctx.user.id,
         key,

@@ -1,0 +1,9 @@
+# Which *.enc files are encrypted for which age recipients.
+# Replace the placeholder keys below with real ones - see SOPS_GUIDE.md for
+# how to generate and register them.
+creation_rules:
+  - path_regex: \.enc$
+    age: >-
+      age1REPLACE_WITH_DEVELOPER_PUBLIC_KEY,
+      age1REPLACE_WITH_CI_PUBLIC_KEY,
+      age1REPLACE_WITH_PRODUCTION_HOST_PUBLIC_KEY

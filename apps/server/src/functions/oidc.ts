@@ -1,7 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { generateTokensFromUser } from "../common.js";
 import { env } from "../env.js";
-import { axios, JsonValue, z } from "../lib.js";
+import { type OidcSettings } from "../env-schema.js";
+import { axios, type JsonValue, z } from "../lib.js";
 import { t } from "../trpc.js";
 import { Role } from "../zenstack/models.js";
 
@@ -14,11 +15,13 @@ interface OIDCTokenResponse {
 }
 
 export interface SsoGroup {
+  [key: string]: string;
   group_id: string;
   group_name: string;
 }
 
 interface OIDCUserInfo {
+  [key: string]: JsonValue | null | undefined;
   sub: string;
   name?: string;
   role?: string[];
@@ -51,6 +54,26 @@ interface OIDCConfiguration {
   issuer: string;
 }
 
+interface OIDCState {
+  direct?: string;
+  redirectUrl?: string;
+}
+
+/** Prefer the provider's own error body over axios's generic message. */
+const describeError = (error: unknown): unknown =>
+  axios.isAxiosError(error) ? (error.response?.data ?? error.message) : error;
+
+/** env.oidc is the single source of truth for whether OIDC is configured. */
+const requireOidcSettings = (): OidcSettings => {
+  if (!env.oidc) {
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message: "OIDC login is not configured on this server.",
+    });
+  }
+  return env.oidc;
+};
+
 // Cache for OIDC configuration to avoid repeated requests
 let oidcConfigCache: OIDCConfiguration | null = null;
 
@@ -63,15 +86,12 @@ async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
   }
 
   try {
-    const configUrl = `${env.OIDC_ISSUER}/.well-known/openid-configuration`;
+    const configUrl = `${requireOidcSettings().issuer}/.well-known/openid-configuration`;
     const response = await axios.get<OIDCConfiguration>(configUrl);
     oidcConfigCache = response.data;
     return oidcConfigCache;
-  } catch (error: any) {
-    console.error(
-      "Failed to fetch OIDC configuration:",
-      error.response?.data || error.message,
-    );
+  } catch (error) {
+    console.error("Failed to fetch OIDC configuration:", describeError(error));
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Failed to fetch OIDC provider configuration",
@@ -83,22 +103,34 @@ async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
  * Initiate OIDC login flow
  * Returns the authorization URL that the client should redirect to
  */
-export const oidcInitiateLogin = t.procedure.query(async () => {
-  const config = await getOIDCConfiguration();
+export const oidcInitiateLogin = t.procedure
+  .input(
+    z.object({
+      redirectUrl: z.string().optional(),
+    }),
+  )
+  .query(async ({ input }) => {
+    const oidc = requireOidcSettings();
+    const config = await getOIDCConfiguration();
+    const state: OIDCState = {
+      direct: env.OIDC_DIRECT_URI,
+      redirectUrl: input.redirectUrl,
+    };
 
-  const params = new URLSearchParams({
-    client_id: env.OIDC_CLIENT_ID,
-    redirect_uri: env.OIDC_REDIRECT_URI,
-    response_type: "code",
-    scope: "openid profile email role group",
+    const params = new URLSearchParams({
+      client_id: oidc.clientId,
+      redirect_uri: oidc.redirectUri,
+      response_type: "code",
+      scope: "openid profile email role group",
+      state: JSON.stringify(state),
+    });
+
+    const authUrl = `${config.authorization_endpoint}?${params}`;
+
+    return {
+      authUrl,
+    };
   });
-
-  const authUrl = `${config.authorization_endpoint}?${params}`;
-
-  return {
-    authUrl,
-  };
-});
 
 /**
  * Handle OIDC callback after user authenticates with provider
@@ -112,6 +144,7 @@ export const oidcHandleCallback = t.procedure
   )
   .mutation(async ({ ctx, ctx: { db, log }, input }) => {
     try {
+      const oidc = requireOidcSettings();
       const config = await getOIDCConfiguration();
 
       // Exchange code for tokens
@@ -121,10 +154,9 @@ export const oidcHandleCallback = t.procedure
           new URLSearchParams({
             grant_type: "authorization_code",
             code: input.code,
-            redirect_uri: env.OIDC_REDIRECT_URI,
-            client_id: env.OIDC_CLIENT_ID,
-            client_secret: env.OIDC_CLIENT_SECRET,
-            state: env.OIDC_STATE ?? "",
+            redirect_uri: oidc.redirectUri,
+            client_id: oidc.clientId,
+            client_secret: oidc.clientSecret,
           }),
           {
             headers: {
@@ -132,11 +164,8 @@ export const oidcHandleCallback = t.procedure
             },
           },
         )
-        .catch((error: any) => {
-          console.error(
-            "Token exchange failed:",
-            error.response?.data || error.message,
-          );
+        .catch((error: unknown) => {
+          console.error("Token exchange failed:", describeError(error));
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to exchange code for token",
@@ -152,11 +181,8 @@ export const oidcHandleCallback = t.procedure
             Authorization: `Bearer ${tokens.access_token}`,
           },
         })
-        .catch((error: any) => {
-          console.error(
-            "User info fetch failed:",
-            error.response?.data || error.message,
-          );
+        .catch((error: unknown) => {
+          console.error("User info fetch failed:", describeError(error));
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to fetch user info",
@@ -164,11 +190,13 @@ export const oidcHandleCallback = t.procedure
         });
 
       const userInfo = userInfoResponse.data;
-      const userInfoJson = userInfo as unknown as JsonValue;
+      // OIDCUserInfo carries an index signature (above) so this is a direct,
+      // structurally valid cast - not a type-system escape hatch.
+      const userInfoJson = userInfo as JsonValue;
 
-      log.info(`oidc:user-info`, {
-        userInfo: userInfoJson,
-      });
+      // Log only the identifier, not the full PII blob - logs go to
+      // stdout/Loki, which far more people can read than the DB.
+      log.info(`oidc:user-info`, { sub: userInfo.sub });
 
       // Create or update user in database
       const oidc_sub = userInfo.sub;
@@ -192,7 +220,7 @@ export const oidcHandleCallback = t.procedure
             email,
             passwordHash: "", // OIDC users don't need password
             role,
-            oidc_issuer: env.OIDC_ISSUER, // Store OIDC issuer
+            oidc_issuer: oidc.issuer, // Store OIDC issuer
             oidc_userInfo: userInfoJson,
             oidc_sub,
           },
@@ -205,7 +233,7 @@ export const oidcHandleCallback = t.procedure
             username,
             name,
             email,
-            oidc_issuer: env.OIDC_ISSUER, // Store OIDC issuer
+            oidc_issuer: oidc.issuer, // Store OIDC issuer
             oidc_userInfo: userInfoJson,
             oidc_sub,
           },
@@ -215,7 +243,7 @@ export const oidcHandleCallback = t.procedure
       // Generate JWT tokens using existing auth system
       const appTokens = await generateTokensFromUser(ctx, user);
 
-      log.info(`trpc.oidc.login`, { username } as unknown as JsonValue);
+      log.info(`trpc.oidc.login`, { username });
 
       // Return tokens and user info
       return {
@@ -245,10 +273,10 @@ export const oidcHandleCallback = t.procedure
  * Returns the URL to logout from the OIDC provider
  */
 export const oidcLogout = t.procedure.query(async () => {
+  const oidc = requireOidcSettings();
   const config = await getOIDCConfiguration();
   const logoutUrl =
-    config.end_session_endpoint ||
-    `${env.OIDC_ISSUER}/protocol/openid-connect/logout`;
+    config.end_session_endpoint || `${oidc.issuer}/protocol/openid-connect/logout`;
   return { logoutUrl };
 });
 
