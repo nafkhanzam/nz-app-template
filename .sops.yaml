@@ -1,0 +1,5 @@
+creation_rules:
+  - path_regex: \.enc$
+    age: >-
+      age1uk2sn39wryqp3cfj2uwmjg2d9k6r2ct3lv3c7a0d8cvwlenwsupsj4spq7,
+      age1fha0h7wfhystcfxz0ktaykwtlvsmwncd293ejkcdm69nzxz6svkstmcs5d

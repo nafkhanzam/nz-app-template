@@ -1,0 +1,99 @@
+name: Rollback server (blue-green)
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+env:
+  IMAGE: ${{ github.event.repository.name }}-server-${{ github.ref_name }}
+  HEALTH_PATH: /health
+  CADDYFILE: /home/nafkhanzam/kode/Caddyfile
+  CADDY_BIN: /usr/bin/caddy
+
+jobs:
+  rollback:
+    if: false
+    runs-on: self-hosted
+    steps:
+      - name: Resolve rollback slot
+        id: slots
+        run: |
+          set -euo pipefail
+          echo "STATE_DIR=/home/nafkhanzam/kode/running-prod/$IMAGE-deploy-state" >>"$GITHUB_ENV"
+          echo "PUBLIC_DOMAIN=$IMAGE.nafkhan.id" >>"$GITHUB_ENV"
+          echo "PUBLIC_HEALTH_URL=https://$IMAGE.nafkhan.id/health" >>"$GITHUB_ENV"
+          STATE_DIR="/home/nafkhanzam/kode/running-prod/$IMAGE-deploy-state"
+
+          PORTS_FILE="$STATE_DIR/ports.env"
+          [ -f "$PORTS_FILE" ] || { echo "::error::No ports file at $PORTS_FILE -- nothing has been deployed yet."; exit 1; }
+          . "$PORTS_FILE"
+
+          STATE_FILE="$STATE_DIR/active_slot"
+          CURRENT=$(cat "$STATE_FILE" 2>/dev/null || echo "green")
+          if [ "$CURRENT" = "blue" ]; then
+            ROLLBACK="green"; ROLLBACK_PORT="$GREEN_PORT"
+          else
+            ROLLBACK="blue"; ROLLBACK_PORT="$BLUE_PORT"
+          fi
+          CADDY_SNIPPET="$STATE_DIR/$IMAGE.caddy"
+          echo "current=$CURRENT" >>"$GITHUB_OUTPUT"
+          echo "rollback=$ROLLBACK" >>"$GITHUB_OUTPUT"
+          echo "rollback_port=$ROLLBACK_PORT" >>"$GITHUB_OUTPUT"
+          echo "caddy_snippet=$CADDY_SNIPPET" >>"$GITHUB_OUTPUT"
+          echo "Live slot is '$CURRENT'; rolling back to '$ROLLBACK' (port $ROLLBACK_PORT)."
+
+      - name: Verify rollback slot is running
+        run: |
+          set -euo pipefail
+          ROLLBACK="${{ steps.slots.outputs.rollback }}"
+          if ! docker ps --filter "name=^$IMAGE-$ROLLBACK\$" --filter "status=running" -q | grep -q .; then
+            echo "::error::Rollback slot '$ROLLBACK' has no running container. Nothing to roll back to -- redeploy instead."
+            exit 1
+          fi
+
+      - name: Health check rollback slot
+        run: |
+          set -euo pipefail
+          ROLLBACK_PORT="${{ steps.slots.outputs.rollback_port }}"
+          ROLLBACK="${{ steps.slots.outputs.rollback }}"
+          for i in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:$ROLLBACK_PORT$HEALTH_PATH" >/dev/null 2>&1; then
+              echo "Rollback slot '$ROLLBACK' healthy."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Rollback slot '$ROLLBACK' failed health check; aborting rollback."
+          exit 1
+
+      - name: Cut over Caddy to rollback slot
+        run: |
+          set -euo pipefail
+          ROLLBACK_PORT="${{ steps.slots.outputs.rollback_port }}"
+          CADDY_SNIPPET="${{ steps.slots.outputs.caddy_snippet }}"
+          printf 'reverse_proxy 127.0.0.1:%s\n' "$ROLLBACK_PORT" >"$CADDY_SNIPPET"
+          "$CADDY_BIN" validate --config "$CADDYFILE"
+          "$CADDY_BIN" reload --config "$CADDYFILE"
+
+      - name: Verify public endpoint after rollback
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 15); do
+            if curl -fsS "$PUBLIC_HEALTH_URL" >/dev/null 2>&1; then
+              echo "Public endpoint healthy after rollback."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Public endpoint failed after rollback to ${{ steps.slots.outputs.rollback }}."
+          exit 1
+
+      - name: Persist active slot
+        if: success()
+        run: |
+          set -euo pipefail
+          echo "${{ steps.slots.outputs.rollback }}" >"$STATE_DIR/active_slot"
+          echo "Live slot is now '${{ steps.slots.outputs.rollback }}'. Previous slot '${{ steps.slots.outputs.current }}' left running."

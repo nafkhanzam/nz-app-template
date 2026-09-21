@@ -1,16 +1,19 @@
-import "dotenv/config";
-import { expand } from "dotenv-expand";
-import pkg from "../package.json";
+import { config } from "dotenv";
+import pkg from "../package.json" with { type: "json" };
 import { z } from "./lib.js";
 
-expand();
+config();
+// expand(config());
 
 const envSchema = z.object({
   // Server
   PORT: z.coerce.number().int().positive().default(3000),
   APP_ENV: z.string(),
   APP_NAME: z.string().default(pkg.name),
-  VERBOSE: z.boolean().default(false),
+  VERBOSE: z
+    .enum(["true", "false"])
+    .transform((value) => value === "true")
+    .default(false),
 
   // Database
   DATABASE_URL: z.url(),
@@ -35,7 +38,7 @@ const envSchema = z.object({
   OIDC_CLIENT_ID: z.string(),
   OIDC_CLIENT_SECRET: z.string(),
   OIDC_REDIRECT_URI: z.url(),
-  OIDC_STATE: z.string().optional(),
+  OIDC_DIRECT_URI: z.string().optional(),
 
   // Grafana Loki
   LOKI_URL: z.url(),
@@ -49,7 +52,6 @@ if (!parsed.success) {
   console.error(JSON.stringify(z.treeifyError(parsed.error), null, 2));
   process.exit(1);
 }
-
 // Export type for use elsewhere
 export type Env = z.infer<typeof envSchema>;
 

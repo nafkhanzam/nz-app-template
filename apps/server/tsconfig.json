@@ -14,6 +14,8 @@
     "target": "esnext",
     "rootDir": "src",
     "outDir": "dist",
-    "disableSourceOfProjectReferenceRedirect": true
-  }
+    "disableSourceOfProjectReferenceRedirect": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src"]
 }

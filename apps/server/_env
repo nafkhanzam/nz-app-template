@@ -1,0 +1,16 @@
+#!/bin/bash -ei
+
+env="$1"
+shift
+
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+sops -d ".env${env:+.$env}.enc" >"$tmp"
+exec dotenvx run -f "$tmp" -- "$@"
+
+# dotenvx run --env $(sops -d .env.enc) -- "$@"
+
+# Glad it works. Flag two things on your `--env $(...)` version, not touching file myself:
+# - Word-split: unquoted `$(...)` splits on whitespace/newline. Any secret value with space breaks into wrong args.
+# - Leak: `--env` args show in `ps aux` / `/proc/*/cmdline` — secrets visible to other procs on box. Temp-file approach didn't have that.
+# If neither matters for your secrets (single-token values, single-user box), fine as-is.

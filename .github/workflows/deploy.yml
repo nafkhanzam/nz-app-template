@@ -1,127 +1,199 @@
-name: Deploy to VPS
+name: Deploy server (blue-green)
 
 on:
   push:
-    branches:
-      - production
-      - development
+    branches: [development, staging, production]
     paths:
-      - apps/server/**
-      - proxy/**
+      - "apps/server/**"
+      - "!apps/server/.*"
       - "!apps/server/src/scripts/**"
-      - .github/workflows/**
-      - docker-compose.server.yml
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
 
 env:
-  APP_ENV: ${{ github.ref_name }}
+  IMAGE: ${{ github.event.repository.name }}-server-${{ github.ref_name }}
+  HEALTH_PATH: /health
+  CADDYFILE: /home/nafkhanzam/kode/Caddyfile
+  CADDY_BIN: /usr/bin/caddy
 
 jobs:
   deploy:
-    # temporarily disable
     if: false
-    name: Deploy to VPS
     runs-on: self-hosted
-    environment: ${{ github.ref_name }}
-
-    defaults:
-      run:
-        working-directory: /home/nafkhanzam/kode/nz-app-template/${{ github.ref_name }}
-
     steps:
-      - name: Pull latest changes
-        run: git pull
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - name: Create .env files
-        run: |
-          echo "${{ secrets.ENV_FILE_SERVER }}" | envsubst > apps/server/.env
-          echo "${{ secrets.ENV_FILE_WEB }}" | envsubst > apps/web/.env
-
-      - name: Validate .env files
+      - name: Resolve blue/green slots
+        id: slots
         run: |
           set -euo pipefail
-          missing=0
-          declare -A secret_names=( [server]=ENV_FILE_SERVER [web]=ENV_FILE_WEB )
-          for app in server web; do
-            template="env-templates/${secret_names[$app]}.template"
-            envfile="apps/${app}/.env"
-            while IFS='=' read -r key _; do
-              [ -z "$key" ] && continue
-              if ! grep -q "^${key}=" "$envfile"; then
-                echo "::error::missing key in apps/${app}/.env: $key"
-                missing=1
-                continue
-              fi
-              value="$(grep "^${key}=" "$envfile" | cut -d= -f2-)"
-              if [ "$value" = '""' ] || [ -z "$value" ]; then
-                echo "::error::empty value in apps/${app}/.env: $key"
-                missing=1
-              fi
-            done < "$template"
-          done
-          exit $missing
+          echo "STATE_DIR=/home/nafkhanzam/kode/running-prod/$IMAGE-deploy-state" >>"$GITHUB_ENV"
+          echo "PUBLIC_DOMAIN=$IMAGE.nafkhan.id" >>"$GITHUB_ENV"
+          echo "PUBLIC_HEALTH_URL=https://$IMAGE.nafkhan.id/health" >>"$GITHUB_ENV"
+          STATE_DIR="/home/nafkhanzam/kode/running-prod/$IMAGE-deploy-state"
+          mkdir -p "$STATE_DIR"
 
-      - name: Load deploy config
-        run: echo "${{ secrets.ENV_FILE_DEPLOY }}" | envsubst >> "$GITHUB_ENV"
+          pick_free_port() {
+            local exclude="${1:-}" port
+            while :; do
+              port=$(shuf -i 20000-60000 -n 1)
+              [ "$port" = "$exclude" ] && continue
+              ss -ltn | awk '{print $4}' | grep -q ":${port}\$" && continue
+              echo "$port"
+              return
+            done
+          }
 
-      - name: Validate ENV_FILE_DEPLOY
-        run: |
-          set -euo pipefail
-          missing=0
-          while IFS='=' read -r key _; do
-            [ -z "$key" ] && continue
-            value="${!key:-}"
-            if [ -z "$value" ]; then
-              echo "::error::missing/empty key in ENV_FILE_DEPLOY: $key"
-              missing=1
-            fi
-          done < env-templates/ENV_FILE_DEPLOY.template
-          exit $missing
-
-      - name: Blue-green deploy
-        env:
-          CADDYFILE: ${{ github.workspace }}/proxy/Caddyfile.${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-
-          # proxy/ is gitignored (per-host config), seed it on first deploy
-          if [ ! -f "$CADDYFILE" ]; then
-            mkdir -p "$(dirname "$CADDYFILE")"
-            printf '%s {\n\treverse_proxy :%s\n}\n' "$DOMAIN" "$BLUE_PORT" > "$CADDYFILE"
-          fi
-
-          # figure out which slot is currently live from the proxy config
-          if grep -q ":${BLUE_PORT}" "$CADDYFILE"; then
-            OLD_SLOT=blue; OLD_PORT=$BLUE_PORT
-            NEW_SLOT=green; NEW_PORT=$GREEN_PORT
+          PORTS_FILE="$STATE_DIR/ports.env"
+          if [ -f "$PORTS_FILE" ]; then
+            . "$PORTS_FILE"
           else
-            OLD_SLOT=green; OLD_PORT=$GREEN_PORT
-            NEW_SLOT=blue; NEW_PORT=$BLUE_PORT
+            BLUE_PORT=$(pick_free_port)
+            GREEN_PORT=$(pick_free_port "$BLUE_PORT")
+            printf 'BLUE_PORT=%s\nGREEN_PORT=%s\n' "$BLUE_PORT" "$GREEN_PORT" >"$PORTS_FILE"
+            echo "Allocated fresh ports: blue=$BLUE_PORT green=$GREEN_PORT"
           fi
-          echo "Live slot: $OLD_SLOT ($OLD_PORT) -> deploying: $NEW_SLOT ($NEW_PORT)"
 
-          # run migrations once (shared DB, safe to run before either slot serves traffic)
-          docker compose -f docker-compose.server.yml run --rm server pnpm migrate:deploy
+          STATE_FILE="$STATE_DIR/active_slot"
+          CURRENT=$(cat "$STATE_FILE" 2>/dev/null || echo "green")
+          if [ "$CURRENT" = "blue" ]; then
+            TARGET="green"; TARGET_PORT="$GREEN_PORT"
+            CURRENT_PORT="$BLUE_PORT"
+          else
+            TARGET="blue"; TARGET_PORT="$BLUE_PORT"
+            CURRENT_PORT="$GREEN_PORT"
+          fi
+          CADDY_SNIPPET="$STATE_DIR/$IMAGE.caddy"
+          echo "current=$CURRENT" >>"$GITHUB_OUTPUT"
+          echo "target=$TARGET" >>"$GITHUB_OUTPUT"
+          echo "target_port=$TARGET_PORT" >>"$GITHUB_OUTPUT"
+          echo "current_port=$CURRENT_PORT" >>"$GITHUB_OUTPUT"
+          echo "caddy_snippet=$CADDY_SNIPPET" >>"$GITHUB_OUTPUT"
+          echo "Deploying to '$TARGET' slot (port $TARGET_PORT); current live slot is '$CURRENT'."
+          echo "Caddy snippet path (point the Caddyfile's import here once): $CADDY_SNIPPET"
 
-          # bring up the new slot alongside the old one (own compose project so `down` can't touch the other slot)
-          SLOT=$NEW_SLOT SERVER_PORT=$NEW_PORT docker compose -p "nz-app-template-server-${NEW_SLOT}" -f docker-compose.server.yml up -d --force-recreate --build
+      - name: Ensure Caddy site block exists
+        run: |
+          set -euo pipefail
+          CADDY_SNIPPET="${{ steps.slots.outputs.caddy_snippet }}"
+          [ -f "$CADDY_SNIPPET" ] || printf 'reverse_proxy 127.0.0.1:%s\n' "${{ steps.slots.outputs.current_port }}" >"$CADDY_SNIPPET"
+          touch "$CADDYFILE"
+          if ! grep -qF "$PUBLIC_DOMAIN {" "$CADDYFILE"; then
+            printf '\n%s {\n  import %s\n}\n' "$PUBLIC_DOMAIN" "$CADDY_SNIPPET" >>"$CADDYFILE"
+            echo "Added $PUBLIC_DOMAIN block to $CADDYFILE, importing $CADDY_SNIPPET"
+          fi
 
-          # wait for the new slot to become healthy
+      - name: Build image
+        run: |
+          set -euo pipefail
+          docker build -f apps/server/Dockerfile -t "$IMAGE:${{ github.sha }}" .
+
+      - name: Decrypt deployment env
+        id: env
+        run: |
+          set -euo pipefail
+          ENV_TMP=$(mktemp)
+          sops -d "apps/server/.env.${{ github.ref_name }}.enc" >"$ENV_TMP"
+
+          # docker --env-file does not strip quotes or expand $VARS like a shell would,
+          # but our .env values use both (e.g. DATABASE_URL="...$APP_NAME-$APP_ENV").
+          # Resolve via sed (de-quote) + envsubst (expand refs) -- plain text substitution,
+          # never eval/source the decrypted content as shell code.
+          DEQUOTED_TMP=$(mktemp)
+          sed -E 's/^([A-Za-z_][A-Za-z0-9_]*)="(.*)"$/\1=\2/' "$ENV_TMP" >"$DEQUOTED_TMP"
+          rm -f "$ENV_TMP"
+
+          while IFS= read -r line; do
+            case "$line" in
+              ''|'#'*) continue ;;
+            esac
+            export "$line"
+          done <"$DEQUOTED_TMP"
+
+          RESOLVED_TMP=$(mktemp)
+          envsubst <"$DEQUOTED_TMP" >"$RESOLVED_TMP"
+          rm -f "$DEQUOTED_TMP"
+
+          echo "path=$RESOLVED_TMP" >>"$GITHUB_OUTPUT"
+
+      - name: Run database migrations
+        run: |
+          set -euo pipefail
+          docker run --rm --env-file "${{ steps.env.outputs.path }}" \
+            "$IMAGE:${{ github.sha }}" \
+            node_modules/.bin/zen migrate deploy
+
+      - name: Start target slot container
+        id: start
+        run: |
+          set -euo pipefail
+          TARGET="${{ steps.slots.outputs.target }}"
+          TARGET_PORT="${{ steps.slots.outputs.target_port }}"
+          docker rm -f "$IMAGE-$TARGET" >/dev/null 2>&1 || true
+          docker run -d \
+            --name "$IMAGE-$TARGET" \
+            --restart unless-stopped \
+            --env-file "${{ steps.env.outputs.path }}" \
+            -p "127.0.0.1:$TARGET_PORT:3000" \
+            "$IMAGE:${{ github.sha }}"
+
+      - name: Health check target slot
+        run: |
+          set -euo pipefail
+          TARGET_PORT="${{ steps.slots.outputs.target_port }}"
+          TARGET="${{ steps.slots.outputs.target }}"
           for i in $(seq 1 30); do
-            if curl -sf "http://localhost:${NEW_PORT}/health" > /dev/null; then
-              echo "New slot healthy"
-              break
-            fi
-            if [ "$i" -eq 30 ]; then
-              echo "New slot failed health check, rolling back"
-              SLOT=$NEW_SLOT SERVER_PORT=$NEW_PORT docker compose -p "nz-app-template-server-${NEW_SLOT}" -f docker-compose.server.yml down
-              exit 1
+            if curl -fsS "http://127.0.0.1:$TARGET_PORT$HEALTH_PATH" >/dev/null 2>&1; then
+              echo "Target slot '$TARGET' healthy."
+              exit 0
             fi
             sleep 2
           done
+          echo "::error::Target slot '$TARGET' failed health check; leaving old slot live."
+          docker logs --tail 100 "$IMAGE-$TARGET" || true
+          docker rm -f "$IMAGE-$TARGET" || true
+          exit 1
 
-          # switch proxy traffic to the new slot
-          sed -i "s/:${OLD_PORT}/:${NEW_PORT}/" "$CADDYFILE"
-          caddy reload --config "$CADDYFILE"
+      - name: Cut over Caddy to target slot
+        run: |
+          set -euo pipefail
+          TARGET_PORT="${{ steps.slots.outputs.target_port }}"
+          CADDY_SNIPPET="${{ steps.slots.outputs.caddy_snippet }}"
+          printf 'reverse_proxy 127.0.0.1:%s\n' "$TARGET_PORT" >"$CADDY_SNIPPET"
+          "$CADDY_BIN" validate --config "$CADDYFILE"
+          "$CADDY_BIN" reload --config "$CADDYFILE"
 
-          # tear down the old slot
-          SLOT=$OLD_SLOT SERVER_PORT=$OLD_PORT docker compose -p "nz-app-template-server-${OLD_SLOT}" -f docker-compose.server.yml down
+      - name: Verify public endpoint after cutover
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 15); do
+            if curl -fsS "$PUBLIC_HEALTH_URL" >/dev/null 2>&1; then
+              echo "Public endpoint healthy after cutover."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Public endpoint failed after cutover to ${{ steps.slots.outputs.target }}."
+          exit 1
+
+      - name: Persist active slot
+        if: success()
+        run: |
+          set -euo pipefail
+          echo "${{ steps.slots.outputs.target }}" >"$STATE_DIR/active_slot"
+          echo "Live slot is now '${{ steps.slots.outputs.target }}'. Old slot '${{ steps.slots.outputs.current }}' left running for rollback."
+
+      - name: Clean up resolved env
+        if: always()
+        run: |
+          rm -f "${{ steps.env.outputs.path }}"
+
+      - name: Prune old images
+        if: success()
+        run: |
+          docker image prune -f --filter "until=72h" || true
