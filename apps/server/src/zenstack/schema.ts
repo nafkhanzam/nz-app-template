@@ -372,7 +372,7 @@ export class SchemaType implements SchemaDef {
                 },
                 impersonation: {
                     name: "impersonation",
-                    type: "Boolean",
+                    type: "String",
                     optional: true
                 }
             },

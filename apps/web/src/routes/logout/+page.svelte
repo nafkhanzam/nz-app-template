@@ -1,14 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { token, refresh, impersonator, userState } from "$lib/stores/token.svelte";
+  import { token, refresh, userState } from "$lib/stores/token.svelte";
   import { toast } from "$lib";
 
   onMount(() => {
     // Clear tokens
     token.value = null;
     refresh.value = null;
-    impersonator.value = null;
 
     // Clear user state
     userState.data = null;

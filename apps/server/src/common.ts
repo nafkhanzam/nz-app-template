@@ -33,12 +33,13 @@ export const verifyAccessToken = (token: string): JWTPayload | null => {
   }
 };
 
-// `impersonation` is carried as a signed claim on the refresh JWT, so refresh
-// can re-issue impersonation tokens without a schema change.
+// `impersonation` is the actor (admin) user id, carried as a signed claim on
+// the refresh JWT, so refresh can re-issue impersonation tokens without a
+// schema change.
 export const buildRefreshToken = async (
   ctx: Context,
   userId: string,
-  impersonation = false,
+  impersonation?: string,
 ) => {
   const { db } = ctx;
   const refreshToken = await db.refreshToken.create({
@@ -60,7 +61,7 @@ export const verifyRefreshToken = (token: string) => {
   return z
     .object({
       id: z.string().nonempty(),
-      impersonation: z.boolean().optional(),
+      impersonation: z.string().optional(),
     })
     .parse(payload);
 };
@@ -74,7 +75,7 @@ export const hashPassword = (password: string): string => {
 export const generateTokensFromUser = async (
   ctx: Context,
   user: User,
-  impersonation = false,
+  impersonation?: string,
 ) => {
   const accessToken = buildAccessToken({
     id: user.id,

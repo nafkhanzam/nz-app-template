@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from "$lib";
-  import { token, refresh, impersonator } from "$lib/stores/token.svelte";
+  import { token, refresh } from "$lib/stores/token.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import { trpc_ } from "$lib/client.svelte";
@@ -26,8 +26,6 @@
       // Store tokens
       token.value = res.accessToken;
       refresh.value = res.refreshToken;
-      // Fresh login: drop any parked admin session.
-      impersonator.value = null;
 
       toast.success("Successfully logged in with SSO!");
 

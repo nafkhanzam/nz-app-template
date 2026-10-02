@@ -1,7 +1,7 @@
 import { changePassword } from "./functions/change-password.js";
 import { confirmUpload, getUploadUrl } from "./functions/file-upload.js";
 import { hello } from "./functions/hello.js";
-import { impersonate } from "./functions/impersonate.js";
+import { impersonate, stopImpersonating } from "./functions/impersonate.js";
 import { login } from "./functions/login.js";
 import { me } from "./functions/me.js";
 import {
@@ -27,6 +27,7 @@ export const appRouter = t.router({
   oidcUserInfo,
   me,
   impersonate,
+  stopImpersonating,
   refresh,
   changePassword,
   getUploadUrl,

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from "$lib";
-  import { token, refresh, impersonator } from "$lib/stores/token.svelte";
+  import { token, refresh } from "$lib/stores/token.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import Icon from "@iconify/svelte";
@@ -26,7 +26,6 @@
       });
       token.value = res.accessToken;
       refresh.value = res.refreshToken;
-      impersonator.value = null;
       toast.success("Login successful!");
       goto(redirectTo);
     } catch (error: any) {

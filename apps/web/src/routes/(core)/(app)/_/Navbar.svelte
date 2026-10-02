@@ -5,7 +5,9 @@
   import { type NavItem, type NavSingle } from "./lib";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
   import { user } from "$lib/stores/user.svelte";
-  import { impersonator, refresh, token } from "$lib/stores/token.svelte";
+  import { trpc } from "$lib/client.svelte";
+  import { toast } from "$lib";
+  import { refresh, token } from "$lib/stores/token.svelte";
 
   // Props
   const { brandName } = constants;
@@ -22,13 +24,18 @@
     { _type: "single", label: "Logout", href: resolve("/logout") },
   ];
 
-  const stopImpersonating = () => {
-    const original = impersonator.value;
-    token.value = original?.token ?? null;
-    refresh.value = original?.refresh ?? null;
-    impersonator.value = null;
-    // Full reload so nothing cached for the impersonated user lingers.
-    window.location.reload();
+  const stopImpersonating = async () => {
+    if (!refresh.value) return;
+    try {
+      const tokens = await trpc.stopImpersonating.mutate({ refreshToken: refresh.value });
+      token.value = tokens.accessToken;
+      refresh.value = tokens.refreshToken;
+      // Full reload so nothing cached for the impersonated user lingers.
+      window.location.reload();
+    } catch (error) {
+      console.error("Error stopping impersonation:", error);
+      toast.error("Failed to stop impersonating");
+    }
   };
 </script>
 
@@ -127,7 +134,7 @@
           {#each accountDropdownItems as item (item.label)}
             <li><a href={item.href}>{item.label}</a></li>
           {/each}
-          {#if user().impersonation && impersonator.value}
+          {#if user().impersonation}
             <li><button onclick={stopImpersonating}>Stop impersonating</button></li>
           {/if}
         </ul>

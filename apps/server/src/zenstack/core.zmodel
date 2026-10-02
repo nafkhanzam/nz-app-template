@@ -19,7 +19,7 @@ type AuthInfo {
   name          String?
   email         String?
   image         String?
-  impersonation Boolean?
+  impersonation String?
 
   @@auth
 }

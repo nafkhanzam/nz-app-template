@@ -2,7 +2,7 @@
   import { client, trpc } from "$lib/client.svelte";
   import { toast } from "$lib";
   import { user } from "$lib/stores/user.svelte";
-  import { impersonator, refresh, token } from "$lib/stores/token.svelte";
+  import { refresh, token } from "$lib/stores/token.svelte";
 
   const usersQ = client.user.useFindMany(() => ({
     select: { id: true, username: true, name: true, role: true },
@@ -15,7 +15,6 @@
     if (!confirm(`Sign in as ${name}? You can switch back from the account menu.`)) return;
     try {
       const tokens = await trpc.impersonate.mutate({ userId });
-      impersonator.value = { token: token.value, refresh: refresh.value };
       token.value = tokens.accessToken;
       refresh.value = tokens.refreshToken;
       // Full reload so no data cached for the admin leaks into the new session.
