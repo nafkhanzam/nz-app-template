@@ -10,4 +10,4 @@ process.on("uncaughtException", (error) => {
   // Don't exit the process, just log the error
 });
 
-import "./env.ts";
+import "./env.js";

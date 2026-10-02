@@ -5,7 +5,7 @@ import { JsonObject, type trpcExpress } from "./lib.js";
 import { createLog } from "./log.js";
 import { s3 } from "./s3.js";
 import { JWTPayload } from "./shared/jwt.js";
-import type { SchemaType } from "./zenstack/schema";
+import type { SchemaType } from "./zenstack/schema.js";
 
 const getUserFromToken = (token: string | undefined): JWTPayload | null => {
   if (!token) {

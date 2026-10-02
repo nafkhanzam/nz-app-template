@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { sleep, z } from "../lib.ts";
-import { t } from "../trpc.ts";
+import { sleep, z } from "../lib.js";
+import { t } from "../trpc.js";
 
 export const hello = t.procedure
   .input(z.string().nullish())

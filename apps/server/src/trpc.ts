@@ -1,7 +1,7 @@
 import { initTRPC } from "@trpc/server";
 import SuperJSON from "superjson";
-import type { Context } from "./context";
-import { unauthorizedError } from "./common";
+import type { Context } from "./context.js";
+import { unauthorizedError } from "./common.js";
 
 export const t = initTRPC.context<Context>().create({ transformer: SuperJSON });
 export const tuser = t.procedure.use(async ({ ctx, next }) => {

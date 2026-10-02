@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { generateTokensFromUser } from "../common.js";
 import { env } from "../env.js";
-import { axios, JsonValue, z } from "../lib.js";
+import { axios, type JsonValue, z } from "../lib.js";
 import { t } from "../trpc.js";
 import { Role } from "../zenstack/models.js";
 
@@ -51,6 +51,11 @@ interface OIDCConfiguration {
   issuer: string;
 }
 
+interface OIDCState {
+  direct?: string;
+  redirectUrl?: string;
+}
+
 // Cache for OIDC configuration to avoid repeated requests
 let oidcConfigCache: OIDCConfiguration | null = null;
 
@@ -83,22 +88,33 @@ async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
  * Initiate OIDC login flow
  * Returns the authorization URL that the client should redirect to
  */
-export const oidcInitiateLogin = t.procedure.query(async () => {
-  const config = await getOIDCConfiguration();
+export const oidcInitiateLogin = t.procedure
+  .input(
+    z.object({
+      redirectUrl: z.string().optional(),
+    }),
+  )
+  .query(async ({ input }) => {
+    const config = await getOIDCConfiguration();
+    const state: OIDCState = {
+      direct: env.OIDC_DIRECT_URI,
+      redirectUrl: input.redirectUrl,
+    };
 
-  const params = new URLSearchParams({
-    client_id: env.OIDC_CLIENT_ID,
-    redirect_uri: env.OIDC_REDIRECT_URI,
-    response_type: "code",
-    scope: "openid profile email role group",
+    const params = new URLSearchParams({
+      client_id: env.OIDC_CLIENT_ID,
+      redirect_uri: env.OIDC_REDIRECT_URI,
+      response_type: "code",
+      scope: "openid profile email role group",
+      state: JSON.stringify(state),
+    });
+
+    const authUrl = `${config.authorization_endpoint}?${params}`;
+
+    return {
+      authUrl,
+    };
   });
-
-  const authUrl = `${config.authorization_endpoint}?${params}`;
-
-  return {
-    authUrl,
-  };
-});
 
 /**
  * Handle OIDC callback after user authenticates with provider
@@ -124,7 +140,6 @@ export const oidcHandleCallback = t.procedure
             redirect_uri: env.OIDC_REDIRECT_URI,
             client_id: env.OIDC_CLIENT_ID,
             client_secret: env.OIDC_CLIENT_SECRET,
-            state: env.OIDC_STATE ?? "",
           }),
           {
             headers: {

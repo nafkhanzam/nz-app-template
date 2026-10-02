@@ -1,13 +1,13 @@
 import { TRPCError } from "@trpc/server";
-import { z } from "../lib.ts";
+import { z } from "../lib.js";
 import {
   generateFileKey,
   generatePresignedUploadUrl,
   getFileSize,
   getFileUrl,
-} from "../s3.ts";
-import { PrefixFile, prefixSizeMap } from "../shared/upload.ts";
-import { tuser } from "../trpc.ts";
+} from "../s3.js";
+import { PrefixFile, prefixSizeMap } from "../shared/upload.js";
+import { tuser } from "../trpc.js";
 
 /**
  * Get a presigned URL for uploading a file to S3

@@ -1,9 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import {
-  buildAccessToken,
-  buildRefreshToken,
-  verifyRefreshToken,
-} from "../common.js";
+import { generateTokensFromUser, verifyRefreshToken } from "../common.js";
 import { z } from "../lib.js";
 import { t } from "../trpc.js";
 
@@ -31,14 +27,11 @@ export const refresh = t.procedure
     }
 
     const { User: user } = refresh;
-    const accessToken = buildAccessToken({
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      role: user.role,
-    });
-
-    const refreshToken = await buildRefreshToken(ctx, user.id);
+    const { accessToken, refreshToken } = await generateTokensFromUser(
+      ctx,
+      user,
+      payload.impersonation,
+    );
     await db.refreshToken.delete({
       where: {
         id: payload.id,

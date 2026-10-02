@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from "$lib";
-  import { token, refresh } from "$lib/stores/token.svelte";
+  import { token, refresh, impersonator } from "$lib/stores/token.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import Icon from "@iconify/svelte";
@@ -10,6 +10,7 @@
   let password = $state("");
   let isLoading = $state(false);
   let isOIDCLoading = $state(false);
+  const redirectTo = page.url.searchParams.get("redirect") || "/";
 
   const handlePasswordLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -25,8 +26,8 @@
       });
       token.value = res.accessToken;
       refresh.value = res.refreshToken;
+      impersonator.value = null;
       toast.success("Login successful!");
-      const redirectTo = page.url.searchParams.get("redirect") || "/";
       goto(redirectTo);
     } catch (error: any) {
       toast.error(error.message || "Login failed");
@@ -38,7 +39,7 @@
   const handleOIDCLogin = async () => {
     isOIDCLoading = true;
     try {
-      const res = await trpc_.oidcInitiateLogin.query();
+      const res = await trpc_.oidcInitiateLogin.query({ redirectUrl: redirectTo });
       // Redirect to OIDC provider's login page
       window.location.href = res.authUrl;
     } catch (error: any) {

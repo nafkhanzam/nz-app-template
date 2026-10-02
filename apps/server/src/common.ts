@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { Context } from "./context";
-import { env } from "./env";
-import { bcrypt, jwt, z } from "./lib";
-import { jwtPayloadV, type JWTPayload } from "./shared/jwt";
-import { User } from "./zenstack/models";
+import { Context } from "./context.js";
+import { env } from "./env.js";
+import { bcrypt, jwt, z } from "./lib.js";
+import { jwtPayloadV, type JWTPayload } from "./shared/jwt.js";
+import { User } from "./zenstack/models.js";
 
 export const unauthorizedError = new TRPCError({
   code: "UNAUTHORIZED",
@@ -33,7 +33,13 @@ export const verifyAccessToken = (token: string): JWTPayload | null => {
   }
 };
 
-export const buildRefreshToken = async (ctx: Context, userId: string) => {
+// `impersonation` is carried as a signed claim on the refresh JWT, so refresh
+// can re-issue impersonation tokens without a schema change.
+export const buildRefreshToken = async (
+  ctx: Context,
+  userId: string,
+  impersonation = false,
+) => {
   const { db } = ctx;
   const refreshToken = await db.refreshToken.create({
     data: {
@@ -41,16 +47,22 @@ export const buildRefreshToken = async (ctx: Context, userId: string) => {
       revoked: false,
     },
   });
-  const token = jwt.sign({ id: refreshToken.id }, env.JWT_REFRESH_KEY, {
-    expiresIn: env.JWT_REFRESH_EXPIRES_IN as any,
-  });
+  const token = jwt.sign(
+    { id: refreshToken.id, ...(impersonation ? { impersonation } : {}) },
+    env.JWT_REFRESH_KEY,
+    { expiresIn: env.JWT_REFRESH_EXPIRES_IN as any },
+  );
   return token;
 };
 
 export const verifyRefreshToken = (token: string) => {
   const payload = jwt.verify(token, env.JWT_REFRESH_KEY);
-  const refreshTokenId = z.object({ id: z.string().nonempty() }).parse(payload);
-  return refreshTokenId;
+  return z
+    .object({
+      id: z.string().nonempty(),
+      impersonation: z.boolean().optional(),
+    })
+    .parse(payload);
 };
 
 const SALT_ROUNDS = 12;
@@ -59,18 +71,22 @@ export const hashPassword = (password: string): string => {
   return bcrypt.hashSync(password, SALT_ROUNDS);
 };
 
-export const generateTokensFromUser = async (ctx: Context, user: User) => {
+export const generateTokensFromUser = async (
+  ctx: Context,
+  user: User,
+  impersonation = false,
+) => {
   const accessToken = buildAccessToken({
     id: user.id,
     username: user.username,
     name: user.name,
     role: user.role,
     email: user.email ?? undefined,
-    // @ts-expect-error checked.
-    image: user.userInfo?.picture ?? undefined,
+    image: (user.oidc_userInfo as any)?.picture ?? undefined,
+    ...(impersonation ? { impersonation } : {}),
   });
 
-  const refreshToken = await buildRefreshToken(ctx, user.id);
+  const refreshToken = await buildRefreshToken(ctx, user.id, impersonation);
 
   return { accessToken, refreshToken };
 };

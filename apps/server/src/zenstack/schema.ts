@@ -354,6 +354,26 @@ export class SchemaType implements SchemaDef {
                 role: {
                     name: "role",
                     type: "Role"
+                },
+                name: {
+                    name: "name",
+                    type: "String",
+                    optional: true
+                },
+                email: {
+                    name: "email",
+                    type: "String",
+                    optional: true
+                },
+                image: {
+                    name: "image",
+                    type: "String",
+                    optional: true
+                },
+                impersonation: {
+                    name: "impersonation",
+                    type: "Boolean",
+                    optional: true
                 }
             },
             attributes: [

@@ -5,6 +5,7 @@
   import { type NavItem, type NavSingle } from "./lib";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
   import { user } from "$lib/stores/user.svelte";
+  import { impersonator, refresh, token } from "$lib/stores/token.svelte";
 
   // Props
   const { brandName } = constants;
@@ -20,6 +21,15 @@
     // { _type: "single", label: "Settings", href: resolve("/settings") },
     { _type: "single", label: "Logout", href: resolve("/logout") },
   ];
+
+  const stopImpersonating = () => {
+    const original = impersonator.value;
+    token.value = original?.token ?? null;
+    refresh.value = original?.refresh ?? null;
+    impersonator.value = null;
+    // Full reload so nothing cached for the impersonated user lingers.
+    window.location.reload();
+  };
 </script>
 
 <div class="bg-base-300 shadow-lg">
@@ -117,6 +127,9 @@
           {#each accountDropdownItems as item (item.label)}
             <li><a href={item.href}>{item.label}</a></li>
           {/each}
+          {#if user().impersonation && impersonator.value}
+            <li><button onclick={stopImpersonating}>Stop impersonating</button></li>
+          {/if}
         </ul>
       </div>
     </div>

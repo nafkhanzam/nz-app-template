@@ -13,9 +13,13 @@ type Base with ID, Timestamps {
 }
 
 type AuthInfo {
-  id       String
-  username String
-  role     Role
+  id            String
+  username      String
+  role          Role
+  name          String?
+  email         String?
+  image         String?
+  impersonation Boolean?
 
   @@auth
 }

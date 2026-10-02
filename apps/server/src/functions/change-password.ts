@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { unauthorizedError, hashPassword } from "../common";
-import { bcrypt, z } from "../lib";
-import { tuser } from "../trpc";
+import { unauthorizedError, hashPassword } from "../common.js";
+import { bcrypt, z } from "../lib.js";
+import { tuser } from "../trpc.js";
 
 export const changePassword = tuser
   .input(

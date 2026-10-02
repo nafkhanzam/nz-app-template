@@ -5,8 +5,8 @@ import { verifyAccessToken } from "./common.js";
 import { createContext, getClient } from "./context.js";
 import { env } from "./env.js";
 import { cors, express, trpcExpress } from "./lib.js";
-import { appRouter } from "./router.ts";
-import { schema } from "./zenstack/schema";
+import { appRouter } from "./router.js";
+import { schema } from "./zenstack/schema.js";
 
 (async () => {
   // express implementation

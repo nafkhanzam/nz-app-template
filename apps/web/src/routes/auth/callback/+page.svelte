@@ -1,6 +1,6 @@
 <script lang="ts">
   import { toast } from "$lib";
-  import { token, refresh } from "$lib/stores/token.svelte";
+  import { token, refresh, impersonator } from "$lib/stores/token.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import { trpc_ } from "$lib/client.svelte";
@@ -11,6 +11,8 @@
 
   onMount(async () => {
     try {
+      const state = JSON.parse(page.url.searchParams.get("state") ?? "{}");
+
       // Get the authorization code from URL parameters
       const code = page.url.searchParams.get("code");
 
@@ -24,11 +26,13 @@
       // Store tokens
       token.value = res.accessToken;
       refresh.value = res.refreshToken;
+      // Fresh login: drop any parked admin session.
+      impersonator.value = null;
 
       toast.success("Successfully logged in with SSO!");
 
       // Redirect to home or previous page
-      goto("/");
+      goto(state.redirectUrl ?? "/");
     } catch (err: any) {
       console.error("OIDC callback error:", err);
       error = err.message || "Failed to complete SSO login";
