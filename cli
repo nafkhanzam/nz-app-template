@@ -1,15 +1,27 @@
 #!/bin/bash -e
-# Usage: ./cli <localdev|localprod|production> <command> [args...]   (pnpm cli ...)
+# Usage: ./cli <env> <command> [args...]   (pnpm cli ...)
 # Runs a project task with the sops-decrypted variables of the given environment.
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 run="$root/envs/run"
 
+# Environments are the envs/<env>.enc.yaml files.
+available_envs() {
+  local f names=()
+  for f in "$root"/envs/*.enc.yaml; do
+    [ -e "$f" ] || continue
+    f="${f##*/}"
+    names+=("${f%.enc.yaml}")
+  done
+  local IFS="|"
+  echo "${names[*]}"
+}
+
 usage() {
   cat <<USAGE
 Usage: pnpm cli <env> <command> [args...]
 
-env:      localdev | localprod
+env:      $(available_envs)
 
 commands:
   dev [server|web]   start server, web and studio in parallel (or just one)
@@ -28,10 +40,13 @@ USAGE
 env="$1"
 cmd="$2"
 case "$env" in
-localdev | localprod) ;;
 -h | --help | help) usage 0 ;;
-*) usage ;;
+"") usage ;;
 esac
+if [ ! -f "$root/envs/$env.enc.yaml" ]; then
+  echo "Unknown env '$env': envs/$env.enc.yaml not found (available: $(available_envs))" >&2
+  exit 1
+fi
 [ -n "$cmd" ] || usage
 shift 2
 

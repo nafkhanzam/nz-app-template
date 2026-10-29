@@ -32,6 +32,7 @@ COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=prod-deps /app/apps/server/node_modules ./node_modules
 COPY --from=build /app/apps/server/dist ./dist
 COPY --from=build /app/apps/server/package.json ./
+COPY --from=build /app/apps/server/s3.policy.json ./
 COPY --from=build /app/apps/server/src/zenstack ./src/zenstack
 
 # Give appuser write access to directories that need runtime writes

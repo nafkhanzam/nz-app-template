@@ -131,6 +131,13 @@ jobs:
             "$IMAGE:${{ github.sha }}" \
             node_modules/.bin/zen migrate deploy
 
+      - name: Ensure S3 bucket exists
+        run: |
+          set -euo pipefail
+          docker run --rm --env-file "${{ steps.env.outputs.path }}" \
+            "$IMAGE:${{ github.sha }}" \
+            node dist/scripts/ensure-bucket.js
+
       - name: Start target slot container
         id: start
         run: |

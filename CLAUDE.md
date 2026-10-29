@@ -44,7 +44,7 @@ pnpm test:headed  # visible browser
 envs/run <localdev|localprod|production> <cmd>   # sops-decrypt envs/<env>.enc.yaml, run cmd with those vars
 pnpm cli <localdev|localprod|production> edit    # edit encrypted file via sops
 ```
-One set of sops-encrypted files shared by server and web (`envs/template.env` lists all keys). Web only exposes `PUBLIC_*`. The web Dockerfile still builds from an `ENV_FILE` build arg written to `.env`, so filter it to `APP_*`/`PUBLIC_*` in CI.
+One set of sops-encrypted files shared by server and web (`envs/template.yaml` (same shape as the encrypted files; `template.env` is the dotenv equivalent) lists all keys). Web only exposes `PUBLIC_*`. The web Dockerfile still builds from an `ENV_FILE` build arg written to `.env`, so filter it to `APP_*`/`PUBLIC_*` in CI.
 
 ### Local services
 ```bash

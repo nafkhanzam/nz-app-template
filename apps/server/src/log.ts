@@ -25,10 +25,10 @@ export const createLog = (context?: { requestHeaders?: JsonObject }) => {
   });
 
   log.attachTransport((logObj) => {
-    const { _meta, ...rest } = logObj;
+    const { _logMeta, ...rest } = logObj;
 
     winstonLogger.log({
-      level: _meta.logLevelName.toLowerCase(),
+      level: _logMeta.logLevelName.toLowerCase(),
       message: JSON.stringify({
         ...rest,
         _requestHeaders: context?.requestHeaders,
