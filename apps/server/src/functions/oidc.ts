@@ -6,6 +6,7 @@ import {
   type OIDCProvider,
 } from "../app-config.js";
 import { generateTokensFromUser } from "../common.js";
+import { appLog } from "../log.js";
 import { axios, type JsonValue, z } from "../lib.js";
 import { t } from "../trpc.js";
 import { Role, type User } from "../zenstack/models.js";
@@ -96,8 +97,8 @@ async function getOIDCConfiguration(
     oidcConfigCache.set(cacheKey, response.data);
     return response.data;
   } catch (error: any) {
-    console.error(
-      "Failed to fetch OIDC configuration:",
+    appLog.error(
+      "Failed to fetch OIDC configuration",
       error.response?.data || error.message,
     );
     throw new TRPCError({
@@ -201,8 +202,8 @@ export const oidcHandleCallback = t.procedure
           },
         )
         .catch((error: any) => {
-          console.error(
-            "Token exchange failed:",
+          log.error(
+            "Token exchange failed",
             error.response?.data || error.message,
           );
           throw new TRPCError({
@@ -221,8 +222,8 @@ export const oidcHandleCallback = t.procedure
           },
         })
         .catch((error: any) => {
-          console.error(
-            "User info fetch failed:",
+          log.error(
+            "User info fetch failed",
             error.response?.data || error.message,
           );
           throw new TRPCError({
@@ -316,7 +317,7 @@ export const oidcHandleCallback = t.procedure
       if (error instanceof TRPCError) {
         throw error;
       }
-      console.error("OIDC callback error:", error);
+      log.error("OIDC callback error", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Internal server error during OIDC callback",

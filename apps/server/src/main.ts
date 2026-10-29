@@ -2,9 +2,10 @@ import "./prerun.js";
 import { ZenStackMiddleware } from "@zenstackhq/server/express";
 import { RPCApiHandler } from "@zenstackhq/server/api";
 import { verifyAccessToken } from "./common.js";
-import { createContext, getClient } from "./context.js";
+import { createContext, getClient, headersToObject } from "./context.js";
 import { db } from "./db.js";
 import { env } from "./env.js";
+import { appLog, createLog } from "./log.js";
 import { cors, express, trpcExpress } from "./lib.js";
 import { appRouter } from "./router.js";
 import { schema } from "./zenstack/schema.js";
@@ -36,9 +37,8 @@ import { schema } from "./zenstack/schema.js";
     trpcExpress.createExpressMiddleware({
       router: appRouter,
       createContext,
-      onError: ({ error }) => {
-        console.error(error.code, error.name, error.message);
-        console.error(error.stack);
+      onError: ({ error, ctx }) => {
+        (ctx?.log ?? appLog).error(`trpc ${error.code}`, error);
       },
     }),
   );
@@ -60,7 +60,7 @@ import { schema } from "./zenstack/schema.js";
         schema,
         log(level, message, error) {
           if (level === "error") {
-            console.error(error);
+            appLog.error(`ZenStack RPC: ${message}`, error);
           }
         },
       }),
@@ -89,8 +89,11 @@ import { schema } from "./zenstack/schema.js";
   });
 
   // Error handler middleware - must be defined after all routes
-  app.use((err: any, _req: any, res: any, _next: any) => {
-    console.error("Uncaught error:", err);
+  app.use((err: any, req: any, res: any, _next: any) => {
+    createLog({ requestHeaders: headersToObject(req.rawHeaders) }).error(
+      "Uncaught error",
+      err,
+    );
 
     const statusCode = err.statusCode || err.status || 500;
     const message = err.message || "Internal server error";
@@ -120,19 +123,19 @@ import { schema } from "./zenstack/schema.js";
     shuttingDown = true;
 
     const force = setTimeout(() => {
-      console.error("Shutdown timed out, forcing exit.");
+      appLog.error("Shutdown timed out, forcing exit.");
       process.exit(1);
     }, 10_000);
     force.unref();
 
     server.close(async (err) => {
       if (err) {
-        console.error("Error closing server:", err);
+        appLog.error("Error closing server", err);
       }
       try {
         await db.$disconnect();
       } catch (e) {
-        console.error("Error closing database:", e);
+        appLog.error("Error closing database", e);
       }
       process.exit(err ? 1 : 0);
     });

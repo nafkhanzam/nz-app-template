@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import type { Context } from "./context.js";
 import { env } from "./env.js";
+import { appLog } from "./log.js";
 import { bcrypt, jwt, z } from "./lib.js";
 import { jwtPayloadV, type JWTPayload } from "./shared/jwt.js";
 import type { User } from "./zenstack/models.js";
@@ -28,7 +29,7 @@ export const verifyAccessToken = (token: string): JWTPayload | null => {
     const jwtObject = jwtPayloadV.parse(payload);
     return jwtObject;
   } catch (error) {
-    console.error(error);
+    appLog.warn("Access token verification failed", error);
     return null;
   }
 };

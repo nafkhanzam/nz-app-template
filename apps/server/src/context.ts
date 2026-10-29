@@ -20,7 +20,7 @@ const SENSITIVE_HEADERS = new Set(["authorization", "cookie", "set-cookie"]);
 const maskValue = (value: string) =>
   value.length <= 4 ? "***" : `${value.slice(0, 4)}***`;
 
-const headersToObject = (rawHeaders: string[]) => {
+export const headersToObject = (rawHeaders: string[]) => {
   const headers: JsonObject = {};
   for (let i = 0; i < rawHeaders.length; i += 2) {
     const key = rawHeaders[i];

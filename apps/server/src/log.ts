@@ -38,3 +38,6 @@ export const createLog = (context?: { requestHeaders?: JsonObject }) => {
 
   return log;
 };
+
+/** Logger for code that runs outside a request (startup, shutdown, process-level handlers). */
+export const appLog = createLog();
