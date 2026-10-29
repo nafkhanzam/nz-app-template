@@ -1,0 +1,67 @@
+name: Rollback web (Cloudflare Pages)
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: "Pages deployment id to roll back to (default: the previous successful production deployment)"
+        required: false
+        type: string
+
+concurrency:
+  group: deploy-web-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  # envs/<name>.enc.yaml holding CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and APP_NAME.
+  APP_ENV_NAME: production
+
+jobs:
+  rollback:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # sops and its age key (SOPS_AGE_KEY) are provided by the runner VPS.
+      - name: Ensure dotenvx
+        run: command -v dotenvx >/dev/null || npm install -g @dotenvx/dotenvx
+
+      - name: Roll back Cloudflare Pages production deployment
+        env:
+          TARGET_DEPLOYMENT_ID: ${{ inputs.deployment_id }}
+        run: |
+          ./cli "$APP_ENV_NAME" exec node --input-type=module - <<'JS'
+          const { CLOUDFLARE_API_TOKEN: token, CLOUDFLARE_ACCOUNT_ID: account, APP_NAME: project } = process.env;
+          const base = `https://api.cloudflare.com/client/v4/accounts/${account}/pages/projects/${project}/deployments`;
+          const call = async (method, url) => {
+            const res = await fetch(url, { method, headers: { Authorization: `Bearer ${token}` } });
+            const json = await res.json();
+            if (!json.success) throw new Error(JSON.stringify(json.errors));
+            return json.result;
+          };
+
+          // Newest first; only successful production builds can be rolled back to.
+          const deployments = (await call("GET", `${base}?env=production`)).filter(
+            (d) => d.latest_stage?.name === "deploy" && d.latest_stage?.status === "success",
+          );
+          const describe = (d) => `${d.id} (${d.created_on}, ${d.deployment_trigger?.metadata?.commit_hash?.slice(0, 7) ?? "no commit"})`;
+          if (deployments.length === 0) throw new Error("No successful production deployments found");
+          console.log(`Live: ${describe(deployments[0])}`);
+
+          const wanted = process.env.TARGET_DEPLOYMENT_ID;
+          const target = wanted ? deployments.find((d) => d.id === wanted) : deployments[1];
+          if (!target) {
+            throw new Error(
+              wanted
+                ? `Deployment ${wanted} is not a successful production deployment`
+                : "No earlier successful production deployment to roll back to",
+            );
+          }
+          if (target.id === deployments[0].id) throw new Error("Target is already the live deployment");
+
+          await call("POST", `${base}/${target.id}/rollback`);
+          console.log(`Rolled back to ${describe(target)}`);
+          JS
