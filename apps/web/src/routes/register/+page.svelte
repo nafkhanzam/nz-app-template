@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { toast } from "$lib";
-  import { trpc } from "$lib/client.svelte";
-  import { token, refresh } from "$lib/stores/token.svelte";
+  import { toast } from "#lib";
+  import { trpc } from "#lib/client.svelte";
+  import { token, refresh } from "#lib/stores/token.svelte";
   import { goto } from "$app/navigation";
 
   let name = $state("");
@@ -117,7 +117,11 @@
         <button
           class="btn btn-primary"
           onclick={handleRegister}
-          disabled={isLoading || !name.trim() || !username.trim() || !password.trim() || !confirmPassword.trim()}
+          disabled={isLoading ||
+            !name.trim() ||
+            !username.trim() ||
+            !password.trim() ||
+            !confirmPassword.trim()}
         >
           {#if isLoading}
             <span class="loading loading-spinner"></span>

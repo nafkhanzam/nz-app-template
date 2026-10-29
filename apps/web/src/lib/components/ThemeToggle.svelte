@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
-  import { themeStore } from "$lib/stores/theme.svelte";
+  import { themeStore } from "#lib/stores/theme.svelte";
 </script>
 
 <button

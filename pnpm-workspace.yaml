@@ -2,25 +2,25 @@ packages:
   - apps/*
 
 catalog:
-  '@zenstackhq/cli': 3.9.7
-  '@zenstackhq/orm': 3.9.7
-  '@zenstackhq/plugin-policy': 3.9.7
-  '@zenstackhq/schema': 3.9.7
-  '@zenstackhq/server': 3.9.7
-  '@zenstackhq/tanstack-query': 3.9.7
-  'zenstack-trpc': 0.2.5
-  typescript: 6.0.3
-  zod: 4.4.3
+  "@zenstackhq/cli": 3.10.0
+  "@zenstackhq/orm": 3.10.0
+  "@zenstackhq/plugin-policy": 3.10.0
+  "@zenstackhq/schema": 3.10.0
+  "@zenstackhq/server": 3.10.0
+  "@zenstackhq/tanstack-query": 3.10.0
+  "zenstack-trpc": 0.2.5
+  typescript: ^6.0.3
+  zod: 4.6.7
 
 allowBuilds:
-  '@prisma/engines': true
+  "@prisma/engines": true
   bcrypt: true
   esbuild: true
   prisma: true
   protobufjs: true
 
 onlyBuiltDependencies:
-  - '@prisma/engines'
+  - "@prisma/engines"
   - bcrypt
   - esbuild
   - prisma

@@ -3,7 +3,7 @@
   import ContentNotFound from "./ContentNotFound.svelte";
   import ErrorMessage from "./ErrorMessage.svelte";
   import Loading from "./Loading.svelte";
-  import { isServerError, isTRPCClientError } from "$lib";
+  import { isServerError, isTRPCClientError } from "#lib";
   // import type {useModelQuery} from "@zenstackhq/tanstack-query/runtime-v5/svelte";
 
   let {

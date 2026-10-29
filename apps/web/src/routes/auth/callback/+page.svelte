@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { toast } from "$lib";
-  import { token, refresh } from "$lib/stores/token.svelte";
+  import { toast } from "#lib";
+  import { token, refresh } from "#lib/stores/token.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
-  import { trpc_ } from "$lib/client.svelte";
+  import { trpc_ } from "#lib/client.svelte";
   import { onMount } from "svelte";
 
   let isLoading = $state(true);

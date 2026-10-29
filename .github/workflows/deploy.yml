@@ -2,13 +2,15 @@ name: Deploy server (blue-green)
 
 on:
   push:
-    branches: [development, staging, production]
+    branches:
+      - development
+      - staging
+      - production
     paths:
       - "apps/server/**"
       - "!apps/server/.*"
       - "!apps/server/src/scripts/**"
       - ".github/workflows/deploy.yml"
-  workflow_dispatch: {}
 
 concurrency:
   group: deploy-server

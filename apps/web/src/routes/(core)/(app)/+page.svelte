@@ -1,6 +1,6 @@
 <script lang="ts">
   import { resolve } from "$app/paths";
-  import Container from "$lib/components/Container.svelte";
+  import Container from "#lib/components/Container.svelte";
 </script>
 
 <Container>

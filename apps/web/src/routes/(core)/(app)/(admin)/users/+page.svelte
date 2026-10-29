@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { client, trpc } from "$lib/client.svelte";
-  import { toast } from "$lib";
-  import { user } from "$lib/stores/user.svelte";
-  import { refresh, token } from "$lib/stores/token.svelte";
+  import { client, trpc } from "#lib/client.svelte";
+  import { toast } from "#lib";
+  import { user } from "#lib/stores/user.svelte";
+  import { refresh, token } from "#lib/stores/token.svelte";
 
   const usersQ = client.user.useFindMany(() => ({
     select: { id: true, username: true, name: true, role: true },

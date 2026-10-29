@@ -1,3 +1,4 @@
+import adapter from "@sveltejs/adapter-static";
 import tailwindcss from "@tailwindcss/vite";
 import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
@@ -9,6 +10,14 @@ export default defineConfig({
     nodePolyfills({
       include: ["buffer"],
     }),
-    sveltekit(),
+    sveltekit({
+      adapter: adapter({
+        pages: "build",
+        assets: "build",
+        fallback: "index.html",
+        precompress: true,
+        strict: true,
+      }),
+    }),
   ],
 });

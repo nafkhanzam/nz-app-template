@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { toast } from "$lib";
-  import { token, refresh } from "$lib/stores/token.svelte";
+  import { toast } from "#lib";
+  import { token, refresh } from "#lib/stores/token.svelte";
   import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import Icon from "@iconify/svelte";
-  import { trpc_ } from "$lib/client.svelte";
+  import { trpc_ } from "#lib/client.svelte";
 
   let username = $state("");
   let password = $state("");

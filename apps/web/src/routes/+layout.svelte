@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { browser } from "$app/environment";
-  import { env } from "$env/dynamic/public";
-  import { toast } from "$lib";
-  import favicon from "$lib/assets/favicon.svg";
-  import { trpc } from "$lib/client.svelte";
-  import { AuthError, myFetch } from "$lib/my-fetch.svelte";
-  import { token, userState } from "$lib/stores/token.svelte";
+  import { browser } from "$app/env";
+  import { PUBLIC_BACKEND_URL, PUBLIC_ENABLE_LOGGING } from "$app/env/public";
+  import { toast } from "#lib";
+  import favicon from "#lib/assets/favicon.svg";
+  import { trpc } from "#lib/client.svelte";
+  import { AuthError, myFetch } from "#lib/my-fetch.svelte";
+  import { token, userState } from "#lib/stores/token.svelte";
   import {
     MutationCache,
     QueryCache,
@@ -38,9 +38,9 @@
   });
 
   setQuerySettingsContext({
-    endpoint: `${env.PUBLIC_BACKEND_URL}/api/model`,
+    endpoint: `${PUBLIC_BACKEND_URL}/api/model`,
     fetch: myFetch,
-    logging: env.PUBLIC_ENABLE_LOGGING?.toLowerCase() === "true",
+    logging: PUBLIC_ENABLE_LOGGING,
   });
 
   const queryClient = new QueryClient({
@@ -77,5 +77,5 @@
 <QueryClientProvider client={queryClient}>
   {@render children()}
   <Toaster />
-  <SvelteQueryDevtools />
+  <!-- <SvelteQueryDevtools /> -->
 </QueryClientProvider>

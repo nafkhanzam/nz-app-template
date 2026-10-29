@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { token, refresh, userState } from "$lib/stores/token.svelte";
-  import { toast } from "$lib";
+  import { token, refresh, userState } from "#lib/stores/token.svelte";
+  import { toast } from "#lib";
 
   onMount(() => {
     // Clear tokens

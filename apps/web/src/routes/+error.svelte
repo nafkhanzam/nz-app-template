@@ -1,7 +1,7 @@
 <script>
-  import {page} from "$app/state";
-  import {toast} from "$lib";
-  import InternalError from "$lib/components/InternalError.svelte";
+  import { page } from "$app/state";
+  import { toast } from "#lib";
+  import InternalError from "#lib/components/InternalError.svelte";
 
   $effect(() => {
     const message = page.error?.message;

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
-  import { user } from "$lib/stores/user.svelte";
+  import { user } from "#lib/stores/user.svelte";
   import Card from "../_/ui/Card.svelte";
 
   const currentUser = $derived(user());

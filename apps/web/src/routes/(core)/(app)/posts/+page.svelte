@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { uploadFile, getFileUrl } from "$lib";
-  import { client } from "$lib/client.svelte";
-  import Query from "$lib/components/Query.svelte";
-  import Pagination from "$lib/components/Pagination.svelte";
-  import { usePagination } from "$lib/stores/pagination.svelte";
-  import { user } from "$lib/stores/user.svelte";
-  import { toast } from "$lib";
-  import Container from "$lib/components/Container.svelte";
+  import { uploadFile, getFileUrl } from "#lib";
+  import { client } from "#lib/client.svelte";
+  import Query from "#lib/components/Query.svelte";
+  import Pagination from "#lib/components/Pagination.svelte";
+  import { usePagination } from "#lib/stores/pagination.svelte";
+  import { user } from "#lib/stores/user.svelte";
+  import { toast } from "#lib";
+  import Container from "#lib/components/Container.svelte";
 
   const pagination = usePagination(10);
 
@@ -141,8 +141,7 @@
         class="textarea textarea-bordered w-full"
         placeholder="What's on your mind?"
         bind:value={postContent}
-        rows="3"
-      ></textarea>
+        rows="3"></textarea>
 
       <div class="form-control">
         <label class="label">
@@ -216,8 +215,7 @@
                     <textarea
                       class="textarea textarea-bordered w-full"
                       bind:value={editContent}
-                      rows="3"
-                    ></textarea>
+                      rows="3"></textarea>
                     <div class="flex gap-2 justify-end">
                       <button
                         class="btn btn-sm btn-ghost"

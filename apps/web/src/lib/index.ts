@@ -1,4 +1,4 @@
-import { env } from "$env/dynamic/public";
+import { PUBLIC_S3_ENDPOINT } from "$app/env/public";
 import type { CreateQueryResult } from "@tanstack/svelte-query";
 import { TRPCClientError } from "@trpc/client";
 import { customAlphabet } from "nanoid";
@@ -38,13 +38,14 @@ export function isServerError(cause: unknown): cause is ServerError {
   return safe.success;
 }
 export const getFileUrl = (key: string): string => {
-  return `${env.PUBLIC_S3_ENDPOINT}/${key}`;
+  return `${PUBLIC_S3_ENDPOINT}/${key}`;
 };
 
 export function calculateDurationMonths(startDate: Date | string, endDate: Date | string): number {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const months = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  const months =
+    (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
   return Math.max(1, months);
 }
 

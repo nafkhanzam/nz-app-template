@@ -1,5 +1,5 @@
 import { trpc } from "./client.svelte";
-import { type PrefixFile } from "$lib/shared/upload";
+import { type PrefixFile } from "#lib/shared/upload";
 
 export interface UploadOptions {
   file: File;

@@ -3,11 +3,11 @@
   import Icon from "@iconify/svelte";
   import { constants } from "../../../_/constants";
   import { type NavItem, type NavSingle } from "./lib";
-  import ThemeToggle from "$lib/components/ThemeToggle.svelte";
-  import { user } from "$lib/stores/user.svelte";
-  import { trpc } from "$lib/client.svelte";
-  import { toast } from "$lib";
-  import { refresh, token } from "$lib/stores/token.svelte";
+  import ThemeToggle from "#lib/components/ThemeToggle.svelte";
+  import { user } from "#lib/stores/user.svelte";
+  import { trpc } from "#lib/client.svelte";
+  import { toast } from "#lib";
+  import { refresh, token } from "#lib/stores/token.svelte";
 
   // Props
   const { brandName } = constants;

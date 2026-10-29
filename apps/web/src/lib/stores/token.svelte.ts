@@ -1,4 +1,4 @@
-import type { MeResponse } from "$lib/shared/jwt";
+import type { MeResponse } from "#lib/shared/jwt";
 import { localStore } from "./store.svelte";
 
 export const token = localStore<string | null>("token", null);

@@ -1,8 +1,16 @@
 <script lang="ts">
-  import { BKPStatus } from "$lib/zenstack/models";
+  import { BKPStatus } from "#lib/zenstack/models";
 
   interface Props {
-    status: BKPStatus | "draft" | "submitted" | "approved" | "rejected" | "pending" | "completed" | "in_progress";
+    status:
+      | BKPStatus
+      | "draft"
+      | "submitted"
+      | "approved"
+      | "rejected"
+      | "pending"
+      | "completed"
+      | "in_progress";
     size?: "sm" | "md" | "lg";
   }
 

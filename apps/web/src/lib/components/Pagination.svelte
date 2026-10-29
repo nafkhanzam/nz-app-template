@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
-  import type { Pagination } from "$lib/stores/pagination.svelte";
+  import type { Pagination } from "#lib/stores/pagination.svelte";
 
   interface Props {
     pagination: Pagination;

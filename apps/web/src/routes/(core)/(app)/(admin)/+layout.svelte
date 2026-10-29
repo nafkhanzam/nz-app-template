@@ -1,8 +1,8 @@
 <script lang="ts">
-    import InternalError from '$lib/components/InternalError.svelte';
-  import { user } from '$lib/stores/user.svelte';
+  import InternalError from "#lib/components/InternalError.svelte";
+  import { user } from "#lib/stores/user.svelte";
 
-  let {children} = $props();
+  let { children } = $props();
 
   const allow = $derived(user().role === "ADMIN");
 </script>
