@@ -24,7 +24,31 @@
   let model: Monaco.editor.ITextModel | undefined;
   let contentHeight = $state(0);
 
-  const monacoTheme = () => (themeStore.theme === "dark" ? "vs-dark" : "vs");
+  // Dark uses stock vs-dark. Light is vs with a gray palette, since vs's pure white
+  // vanishes into the white cards.
+  const lightColors = {
+    "editor.background": "#eef2f7",
+    "editorGutter.background": "#e4e9f0",
+    "editor.lineHighlightBackground": "#dfe6ef",
+    "editorLineNumber.foreground": "#8b98ab",
+    "editorLineNumber.activeForeground": "#3b4a63",
+    "editor.selectionBackground": "#b9d0f2",
+    "editorCursor.foreground": "#4f46e5",
+  };
+
+  const applyTheme = (monaco: typeof Monaco) => {
+    if (themeStore.theme === "dark") {
+      monaco.editor.setTheme("vs-dark");
+      return;
+    }
+    monaco.editor.defineTheme("app-light", {
+      base: "vs",
+      inherit: true,
+      rules: [],
+      colors: lightColors,
+    });
+    monaco.editor.setTheme("app-light");
+  };
 
   onMount(() => {
     let disposed = false;
@@ -39,9 +63,9 @@
       self.MonacoEnvironment = { getWorker: () => new EditorWorker() };
 
       model = monaco.editor.createModel(value, language);
+      applyTheme(monaco);
       editor = monaco.editor.create(container, {
         model,
-        theme: monacoTheme(),
         automaticLayout: true,
         minimap: { enabled: false },
         wordWrap: "on",
@@ -84,9 +108,10 @@
   });
 
   $effect(() => {
-    const theme = monacoTheme();
+    // Track the app theme so the editor re-themes when it flips.
+    void themeStore.theme;
     if (editor) {
-      import("monaco-editor").then((monaco) => monaco.editor.setTheme(theme));
+      import("monaco-editor").then(applyTheme);
     }
   });
 </script>
