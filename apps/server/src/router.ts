@@ -1,3 +1,9 @@
+import {
+  deleteAppConfig,
+  listAppConfigs,
+  maintenance,
+  setAppConfig,
+} from "./functions/app-config.js";
 import { changePassword } from "./functions/change-password.js";
 import { confirmUpload, getUploadUrl } from "./functions/file-upload.js";
 import { hello } from "./functions/hello.js";
@@ -5,9 +11,11 @@ import { impersonate, stopImpersonating } from "./functions/impersonate.js";
 import { login } from "./functions/login.js";
 import { me } from "./functions/me.js";
 import {
+  allowedRedirectOrigins,
   oidcHandleCallback,
   oidcInitiateLogin,
   oidcLogout,
+  oidcProviders,
   oidcUserInfo,
 } from "./functions/oidc.js";
 import { refresh } from "./functions/refresh.js";
@@ -24,7 +32,13 @@ export const appRouter = t.router({
   oidcInitiateLogin,
   oidcHandleCallback,
   oidcLogout,
+  oidcProviders,
   oidcUserInfo,
+  allowedRedirectOrigins,
+  listAppConfigs,
+  setAppConfig,
+  deleteAppConfig,
+  maintenance,
   me,
   impersonate,
   stopImpersonating,

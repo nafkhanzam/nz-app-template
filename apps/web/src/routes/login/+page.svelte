@@ -5,12 +5,18 @@
   import { page } from "$app/state";
   import Icon from "@iconify/svelte";
   import { trpc_ } from "#lib/client.svelte";
+  import { onMount } from "svelte";
+  import { constants } from "../_/constants";
+  import { createOIDCNonce } from "#lib/oidc-nonce";
+  import { safeRedirect } from "#lib/safe-redirect";
 
   let username = $state("");
   let password = $state("");
   let isLoading = $state(false);
   let isOIDCLoading = $state(false);
-  const redirectTo = page.url.searchParams.get("redirect") || "/";
+  let providers = $state<{ id: string; name: string; iconUrl?: string }[]>([]);
+  let failedIcons = $state<string[]>([]);
+  const rawRedirect = page.url.searchParams.get("redirect");
 
   const handlePasswordLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -27,7 +33,7 @@
       token.value = res.accessToken;
       refresh.value = res.refreshToken;
       toast.success("Login successful!");
-      goto(redirectTo);
+      goto(await safeRedirect(rawRedirect));
     } catch (error: any) {
       toast.error(error.message || "Login failed");
     } finally {
@@ -35,10 +41,22 @@
     }
   };
 
-  const handleOIDCLogin = async () => {
+  onMount(async () => {
+    try {
+      providers = await trpc_.oidcProviders.query();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load SSO providers");
+    }
+  });
+
+  const handleOIDCLogin = async (providerId: string) => {
     isOIDCLoading = true;
     try {
-      const res = await trpc_.oidcInitiateLogin.query({ redirectUrl: redirectTo });
+      const res = await trpc_.oidcInitiateLogin.query({
+        providerId,
+        nonce: createOIDCNonce(),
+        redirectUrl: await safeRedirect(rawRedirect),
+      });
       // Redirect to OIDC provider's login page
       window.location.href = res.authUrl;
     } catch (error: any) {
@@ -47,93 +65,160 @@
     }
   };
 
-  const handleKeyPress = (event: KeyboardEvent) => {
-    if (event.key === "Enter") {
-      handlePasswordLogin();
-    }
-  };
+  const { brandName } = constants;
+  const busy = $derived(isLoading || isOIDCLoading);
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-base-200">
-  <div class="card w-full max-w-md bg-base-100 shadow-2xl">
-    <div class="card-body">
-      <h1 class="text-3xl font-bold text-center mb-2">Welcome Back</h1>
-      <p class="text-center text-base-content/60 mb-6">Sign in to continue</p>
+<div
+  class="relative min-h-screen overflow-hidden bg-base-300 [--color-accent-content:#fff] [--color-accent:#a855f7] [--color-primary-content:#fff] [--color-primary:#6366f1] [--color-secondary-content:#042f3a] [--color-secondary:#22d3ee]"
+>
+  <!-- Background -->
+  <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+    <div
+      class="absolute inset-0 bg-[radial-gradient(color-mix(in_oklab,var(--color-base-content)_14%,transparent)_1px,transparent_1px)] bg-size-[22px_22px] mask-[radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"
+    ></div>
+    <div class="absolute -top-40 -left-32 h-136 w-136 rounded-full bg-primary/30 blur-3xl"></div>
+    <div
+      class="absolute -right-32 -bottom-40 h-136 w-136 rounded-full bg-secondary/25 blur-3xl"
+    ></div>
+    <div
+      class="absolute top-1/3 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-accent/15 blur-3xl"
+    ></div>
+    <div
+      class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgb(0_0_0/0.18)_100%)]"
+    ></div>
+  </div>
 
-      <!-- OIDC Login Option -->
-      <div class="space-y-3 mb-6">
-        <h2 class="text-sm font-semibold text-base-content/70 uppercase">Quick Sign In</h2>
-
-        <button
-          class="btn btn-outline w-full justify-start gap-3"
-          onclick={handleOIDCLogin}
-          disabled={isOIDCLoading || isLoading}
+  <div
+    class="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-6 py-12 lg:grid-cols-2"
+  >
+    <!-- Hero -->
+    <section class="text-center lg:text-left">
+      <div
+        class="mb-6 inline-flex items-center gap-2 rounded-full border border-base-content/10 bg-base-100/60 px-4 py-1.5 text-sm font-medium backdrop-blur"
+      >
+        <Icon icon="heroicons:academic-cap" class="h-4 w-4 text-secondary" />
+        {brandName}
+      </div>
+      <h1 class="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
+        Welcome <span
+          class="bg-linear-to-r from-primary via-accent to-secondary bg-clip-text text-transparent"
+          >back</span
         >
-          <Icon icon="mdi:shield-account" width="20" height="20" />
-          <span>
-            {#if isOIDCLoading}
-              Redirecting...
-            {:else}
-              Continue with SSO
-            {/if}
+      </h1>
+      <p class="mx-auto mt-4 max-w-md text-lg text-base-content/70 lg:mx-0">
+        Sign in to continue to {brandName}.
+      </p>
+      <ul class="mt-8 hidden flex-col gap-3 text-base-content/80 lg:flex">
+        {#if providers.length > 0}
+          <li class="flex items-center gap-3">
+            <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15">
+              <Icon icon="mdi:shield-account" class="h-5 w-5 text-primary" />
+            </span>
+            Single sign-on with {providers.map((p) => p.name).join(", ")}
+          </li>
+        {/if}
+        <li class="flex items-center gap-3">
+          <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/15">
+            <Icon icon="heroicons:key" class="h-5 w-5 text-secondary" />
           </span>
-        </button>
-      </div>
+          {providers.length > 0 ? "Or use" : "Sign in with"} your username and password
+        </li>
+      </ul>
+    </section>
 
-      <div class="divider">OR</div>
-
-      <!-- Username/Password Login -->
-      <div class="form-control">
-        <label class="label" for="username">
-          <span class="label-text">Username</span>
-        </label>
-        <input
-          id="username"
-          type="text"
-          placeholder="Enter your username"
-          class="input input-bordered"
-          bind:value={username}
-          onkeypress={handleKeyPress}
-          disabled={isLoading || isOIDCLoading}
-        />
-      </div>
-
-      <div class="form-control mt-4">
-        <label class="label" for="password">
-          <span class="label-text">Password</span>
-        </label>
-        <input
-          id="password"
-          type="password"
-          placeholder="Enter your password"
-          class="input input-bordered"
-          bind:value={password}
-          onkeypress={handleKeyPress}
-          disabled={isLoading || isOIDCLoading}
-        />
-      </div>
-
-      <div class="form-control mt-6">
-        <button
-          class="btn btn-primary"
-          onclick={handlePasswordLogin}
-          disabled={isLoading || isOIDCLoading || !username.trim() || !password.trim()}
-        >
-          {#if isLoading}
-            <span class="loading loading-spinner"></span>
-            Signing in...
-          {:else}
-            Sign In
-          {/if}
-        </button>
-      </div>
-
-      <!-- <div class="text-center mt-4">
-        <p class="text-sm text-base-content/60">
-          Don't have an account?
-          <a href="/register" class="link link-primary">Sign up</a>
+    <!-- Login card -->
+    <section class="mx-auto w-full max-w-md">
+      <div
+        class="rounded-3xl border border-base-content/10 bg-base-100/80 p-8 shadow-2xl backdrop-blur-xl"
+      >
+        <h2 class="text-2xl font-bold">Sign in</h2>
+        <p class="mt-1 mb-6 text-sm text-base-content/60">
+          {providers.length > 0
+            ? "Choose how you want to continue"
+            : "Enter your username and password"}
         </p>
-      </div> -->
-    </div>
+
+        {#if providers.length > 0}
+          <div class="flex flex-col gap-3">
+            {#each providers as provider (provider.id)}
+              <button
+                class="btn h-12 w-full justify-start gap-3 border-base-content/15 bg-base-100 text-base font-medium shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md"
+                onclick={() => handleOIDCLogin(provider.id)}
+                disabled={busy}
+              >
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                  {#if provider.iconUrl && !failedIcons.includes(provider.id)}
+                    <img
+                      src={provider.iconUrl}
+                      alt=""
+                      class="h-5 w-5 object-contain"
+                      onerror={() => failedIcons.push(provider.id)}
+                    />
+                  {:else}
+                    <Icon icon="mdi:shield-account" width="20" height="20" class="text-primary" />
+                  {/if}
+                </span>
+                <span class="flex-1 text-left">Continue with {provider.name}</span>
+                {#if isOIDCLoading}
+                  <span class="loading loading-sm loading-spinner"></span>
+                {:else}
+                  <Icon icon="heroicons:arrow-right" class="h-4 w-4 opacity-50" />
+                {/if}
+              </button>
+            {/each}
+          </div>
+
+          <div class="divider my-6 text-xs text-base-content/50 uppercase">or with username</div>
+        {/if}
+
+        <form
+          class="flex flex-col gap-4"
+          onsubmit={(e) => {
+            e.preventDefault();
+            handlePasswordLogin();
+          }}
+        >
+          <label class="floating-label">
+            <span>Username</span>
+            <input
+              id="username"
+              type="text"
+              autocomplete="username"
+              placeholder="Username"
+              class="input-bordered input h-12 w-full"
+              bind:value={username}
+              disabled={busy}
+            />
+          </label>
+
+          <label class="floating-label">
+            <span>Password</span>
+            <input
+              id="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Password"
+              class="input-bordered input h-12 w-full"
+              bind:value={password}
+              disabled={busy}
+            />
+          </label>
+
+          <button
+            type="submit"
+            class="btn h-12 text-base btn-primary"
+            disabled={busy || !username.trim() || !password.trim()}
+          >
+            {#if isLoading}
+              <span class="loading loading-spinner"></span>
+              Signing in...
+            {:else}
+              Sign in
+            {/if}
+          </button>
+        </form>
+      </div>
+    </section>
   </div>
 </div>

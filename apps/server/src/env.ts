@@ -33,13 +33,6 @@ const envSchema = z.object({
   AWS_S3_ENDPOINT: z.string().optional(),
   // PUBLIC_S3_ENDPOINT: z.string(),
 
-  // OIDC
-  OIDC_ISSUER: z.url(),
-  OIDC_CLIENT_ID: z.string(),
-  OIDC_CLIENT_SECRET: z.string(),
-  OIDC_REDIRECT_URI: z.url(),
-  OIDC_DIRECT_URI: z.string().optional(),
-
   // Grafana Loki
   LOKI_URL: z.url(),
 });

@@ -7,9 +7,12 @@
 
 import { schema as $schema, type SchemaType as $Schema } from "./schema.js";
 import type { ModelResult as $ModelResult, TypeDefResult as $TypeDefResult } from "@zenstackhq/orm";
+export type RolePermission = $ModelResult<$Schema, "RolePermission">;
 export type User = $ModelResult<$Schema, "User">;
+export type UserOidc = $ModelResult<$Schema, "UserOidc">;
 export type File = $ModelResult<$Schema, "File">;
 export type RefreshToken = $ModelResult<$Schema, "RefreshToken">;
+export type AppConfig = $ModelResult<$Schema, "AppConfig">;
 export type Post = $ModelResult<$Schema, "Post">;
 export type ID = $TypeDefResult<$Schema, "ID">;
 export type Timestamps = $TypeDefResult<$Schema, "Timestamps">;

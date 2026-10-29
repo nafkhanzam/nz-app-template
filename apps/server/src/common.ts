@@ -83,7 +83,7 @@ export const generateTokensFromUser = async (
     name: user.name,
     role: user.role,
     email: user.email ?? undefined,
-    image: (user.oidc_userInfo as any)?.picture ?? undefined,
+    image: user.image ?? undefined,
     ...(impersonation ? { impersonation } : {}),
   });
 

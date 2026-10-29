@@ -15,7 +15,20 @@
   // Configuration
   const brandHref = resolve("/");
 
-  const navItems = $derived<NavItem[]>([]);
+  const navItems = $derived<NavItem[]>(
+    user().role === "ADMIN"
+      ? [
+          {
+            _type: "dropdown",
+            label: "Admin",
+            children: [
+              { _type: "single", label: "Users", href: resolve("/users") },
+              { _type: "single", label: "Settings", href: resolve("/settings") },
+            ],
+          },
+        ]
+      : [],
+  );
 
   // Account dropdown items
   const accountDropdownItems: NavSingle[] = [

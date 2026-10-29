@@ -1,7 +1,7 @@
 import './app'
 
 type ID {
-  id String @id @default(nanoid())
+  id String @id @default(cuid())
 }
 
 type Timestamps {
@@ -19,6 +19,7 @@ type AuthInfo {
   name          String?
   email         String?
   image         String?
+  permissions   String[]
   impersonation String?
 
   @@auth
@@ -29,29 +30,49 @@ enum Role {
   USER
 }
 
-enum FileStatus {
-  PENDING
-  UPLOADED
-  FAILED
+model RolePermission {
+  role        Role     @id
+  permissions String[]
 }
 
 model User with Base {
   username      String         @unique
-  passwordHash  String
+  passwordHash  String         @allow('all', auth().id == id || auth().role == ADMIN)
   name          String
   email         String?
   role          Role
+  permissions   String[]       @default([])
 
-  oidc_issuer   String?
-  oidc_userInfo Json?
-  oidc_sub      String?        @unique
+  image         String?
 
+  Oidc          UserOidc[]
   RefreshToken  RefreshToken[]
   File          File[]
   Post          Post[]
 
   @@allow('read', true)
-  @@allow('all', auth().id == id)
+  @@allow('create', auth().role == ADMIN)
+  @@allow('all', auth().id == id || auth().role == ADMIN)
+}
+
+model UserOidc with Base {
+  userId   String
+  User     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  issuer   String
+  sub      String
+  userInfo Json
+
+  @@unique([issuer, sub])
+
+  @@allow('read', auth().id == userId || auth().role == ADMIN)
+  @@allow('delete', auth().id == userId || auth().role == ADMIN)
+}
+
+enum FileStatus {
+  PENDING
+  UPLOADED
+  FAILED
 }
 
 model File with Timestamps {
@@ -77,6 +98,13 @@ model RefreshToken with Base {
   User    User    @relation(fields: [userId], references: [id])
 
   revoked Boolean
+
+  @@deny('all', true)
+}
+
+model AppConfig with Timestamps {
+  key   String @id
+  value Json
 
   @@deny('all', true)
 }

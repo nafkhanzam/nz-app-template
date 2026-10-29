@@ -1,9 +1,14 @@
 import { TRPCError } from "@trpc/server";
+import {
+  getAllowedRedirectOrigins,
+  getOIDCProviders,
+  isAllowedRedirect,
+  type OIDCProvider,
+} from "../app-config.js";
 import { generateTokensFromUser } from "../common.js";
-import { env } from "../env.js";
 import { axios, type JsonValue, z } from "../lib.js";
 import { t } from "../trpc.js";
-import { Role } from "../zenstack/models.js";
+import { Role, type User } from "../zenstack/models.js";
 
 interface OIDCTokenResponse {
   access_token: string;
@@ -52,26 +57,44 @@ interface OIDCConfiguration {
 }
 
 interface OIDCState {
+  providerId: string;
+  nonce: string;
+  link?: boolean;
   direct?: string;
   redirectUrl?: string;
 }
 
-// Cache for OIDC configuration to avoid repeated requests
-let oidcConfigCache: OIDCConfiguration | null = null;
+async function getProvider(id: string): Promise<OIDCProvider> {
+  const provider = (await getOIDCProviders()).find((p) => p.id === id);
+  if (!provider) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Unknown OIDC provider: ${id}`,
+    });
+  }
+  return provider;
+}
+
+// Per-provider cache for OIDC configuration to avoid repeated requests
+const oidcConfigCache = new Map<string, OIDCConfiguration>();
 
 /**
  * Fetch OIDC configuration from .well-known endpoint
  */
-async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
-  if (oidcConfigCache) {
-    return oidcConfigCache;
+async function getOIDCConfiguration(
+  provider: OIDCProvider,
+): Promise<OIDCConfiguration> {
+  const cacheKey = `${provider.id}|${provider.issuer}`;
+  const cached = oidcConfigCache.get(cacheKey);
+  if (cached) {
+    return cached;
   }
 
   try {
-    const configUrl = `${env.OIDC_ISSUER}/.well-known/openid-configuration`;
+    const configUrl = `${provider.issuer}/.well-known/openid-configuration`;
     const response = await axios.get<OIDCConfiguration>(configUrl);
-    oidcConfigCache = response.data;
-    return oidcConfigCache;
+    oidcConfigCache.set(cacheKey, response.data);
+    return response.data;
   } catch (error: any) {
     console.error(
       "Failed to fetch OIDC configuration:",
@@ -85,25 +108,52 @@ async function getOIDCConfiguration(): Promise<OIDCConfiguration> {
 }
 
 /**
+ * List configured OIDC providers (public info only)
+ */
+export const oidcProviders = t.procedure.query(async () =>
+  (await getOIDCProviders()).map(({ id, name, issuer, iconUrl }) => ({ id, name, issuer, iconUrl })),
+);
+
+/**
+ * Origins post-login redirects may target (public; client validates against it)
+ */
+export const allowedRedirectOrigins = t.procedure.query(() =>
+  getAllowedRedirectOrigins(),
+);
+
+/**
  * Initiate OIDC login flow
  * Returns the authorization URL that the client should redirect to
  */
 export const oidcInitiateLogin = t.procedure
   .input(
     z.object({
+      providerId: z.string(),
+      nonce: z.string().min(16),
+      link: z.boolean().optional(),
       redirectUrl: z.string().optional(),
     }),
   )
   .query(async ({ input }) => {
-    const config = await getOIDCConfiguration();
+    if (input.redirectUrl && !(await isAllowedRedirect(input.redirectUrl))) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Redirect URL is not allowed",
+      });
+    }
+    const provider = await getProvider(input.providerId);
+    const config = await getOIDCConfiguration(provider);
     const state: OIDCState = {
-      direct: env.OIDC_DIRECT_URI,
+      providerId: provider.id,
+      nonce: input.nonce,
+      link: input.link,
+      direct: provider.directUri,
       redirectUrl: input.redirectUrl,
     };
 
     const params = new URLSearchParams({
-      client_id: env.OIDC_CLIENT_ID,
-      redirect_uri: env.OIDC_REDIRECT_URI,
+      client_id: provider.clientId,
+      redirect_uri: provider.redirectUri,
       response_type: "code",
       scope: "openid profile email role group",
       state: JSON.stringify(state),
@@ -123,12 +173,15 @@ export const oidcInitiateLogin = t.procedure
 export const oidcHandleCallback = t.procedure
   .input(
     z.object({
+      providerId: z.string(),
       code: z.string(),
+      link: z.boolean().optional(),
     }),
   )
   .mutation(async ({ ctx, ctx: { db, log }, input }) => {
     try {
-      const config = await getOIDCConfiguration();
+      const provider = await getProvider(input.providerId);
+      const config = await getOIDCConfiguration(provider);
 
       // Exchange code for tokens
       const tokenResponse = await axios
@@ -137,9 +190,9 @@ export const oidcHandleCallback = t.procedure
           new URLSearchParams({
             grant_type: "authorization_code",
             code: input.code,
-            redirect_uri: env.OIDC_REDIRECT_URI,
-            client_id: env.OIDC_CLIENT_ID,
-            client_secret: env.OIDC_CLIENT_SECRET,
+            redirect_uri: provider.redirectUri,
+            client_id: provider.clientId,
+            client_secret: provider.clientSecret,
           }),
           {
             headers: {
@@ -185,44 +238,60 @@ export const oidcHandleCallback = t.procedure
         userInfo: userInfoJson,
       });
 
-      // Create or update user in database
-      const oidc_sub = userInfo.sub;
-      const username = userInfo.preferred_username ?? oidc_sub;
+      const issuer = provider.issuer;
+      const sub = userInfo.sub;
+      const username = userInfo.preferred_username ?? sub;
       const name = userInfo.name ?? username;
       const email = userInfo.email;
-      const role = Role.USER;
+      const image = userInfo.picture;
 
-      let user = await db.user.findUnique({
-        where: {
-          oidc_sub,
-        },
+      const identity = await db.userOidc.findUnique({
+        where: { issuer_sub: { issuer, sub } },
+        include: { User: true },
       });
 
-      if (!user) {
-        // Create new user
+      let user: User;
+      if (identity) {
+        if (input.link && identity.userId !== ctx.user?.id) {
+          // Without this the callback would silently log in as the other user
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "This account is already linked to another user",
+          });
+        }
+        // Known identity: refresh stored info
+        await db.userOidc.update({
+          where: { id: identity.id },
+          data: { userInfo: userInfoJson },
+        });
+        user = await db.user.update({
+          where: { id: identity.userId },
+          data: { name, email, image },
+        });
+      } else if (input.link) {
+        // Explicit link of a new identity to the logged-in user
+        if (!ctx.user) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Login required to link an account",
+          });
+        }
+        await db.userOidc.create({
+          data: { userId: ctx.user.id, issuer, sub, userInfo: userInfoJson },
+        });
+        user = await db.user.findUniqueOrThrow({ where: { id: ctx.user.id } });
+      } else {
         user = await db.user.create({
           data: {
             username,
             name,
             email,
+            image,
             passwordHash: "", // OIDC users don't need password
-            role,
-            oidc_issuer: env.OIDC_ISSUER, // Store OIDC issuer
-            oidc_userInfo: userInfoJson,
-            oidc_sub,
-          },
-        });
-      } else {
-        // Update existing user info
-        user = await db.user.update({
-          where: { id: user.id },
-          data: {
-            username,
-            name,
-            email,
-            oidc_issuer: env.OIDC_ISSUER, // Store OIDC issuer
-            oidc_userInfo: userInfoJson,
-            oidc_sub,
+            role: Role.USER,
+            Oidc: {
+              create: { issuer, sub, userInfo: userInfoJson },
+            },
           },
         });
       }
@@ -259,17 +328,20 @@ export const oidcHandleCallback = t.procedure
  * Get OIDC logout URL
  * Returns the URL to logout from the OIDC provider
  */
-export const oidcLogout = t.procedure.query(async () => {
-  const config = await getOIDCConfiguration();
-  const logoutUrl =
-    config.end_session_endpoint ||
-    `${env.OIDC_ISSUER}/protocol/openid-connect/logout`;
-  return { logoutUrl };
-});
+export const oidcLogout = t.procedure
+  .input(z.object({ providerId: z.string() }))
+  .query(async ({ input }) => {
+    const provider = await getProvider(input.providerId);
+    const config = await getOIDCConfiguration(provider);
+    const logoutUrl =
+      config.end_session_endpoint ||
+      `${provider.issuer}/protocol/openid-connect/logout`;
+    return { logoutUrl };
+  });
 
 /**
  * Get user info from OIDC for the authenticated user
- * Returns the userInfo field stored in the User model
+ * Returns userInfo of every OIDC identity linked to the user
  */
 export const oidcUserInfo = t.procedure.query(async ({ ctx: { db, user } }) => {
   if (!user) {
@@ -279,17 +351,10 @@ export const oidcUserInfo = t.procedure.query(async ({ ctx: { db, user } }) => {
     });
   }
 
-  const userData = await db.user.findUnique({
-    where: { id: user.id },
-    select: { oidc_userInfo: true },
+  const identities = await db.userOidc.findMany({
+    where: { userId: user.id },
+    select: { issuer: true, userInfo: true },
   });
 
-  if (!userData) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "User not found",
-    });
-  }
-
-  return userData.oidc_userInfo;
+  return identities;
 });

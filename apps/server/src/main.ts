@@ -3,6 +3,7 @@ import { ZenStackMiddleware } from "@zenstackhq/server/express";
 import { RPCApiHandler } from "@zenstackhq/server/api";
 import { verifyAccessToken } from "./common.js";
 import { createContext, getClient } from "./context.js";
+import { db } from "./db.js";
 import { env } from "./env.js";
 import { cors, express, trpcExpress } from "./lib.js";
 import { appRouter } from "./router.js";
@@ -106,7 +107,40 @@ import { schema } from "./zenstack/schema.js";
     });
   });
 
-  app.listen(env.PORT, () => {
+  const server = app.listen(env.PORT, () => {
     console.log(`Listening on port ${env.PORT}...`);
   });
+
+  // Graceful shutdown: stop accepting connections, let in-flight requests
+  // finish, then close the DB pool. Force-exit if it takes too long.
+  let shuttingDown = false;
+  const shutdown = (signal: NodeJS.Signals) => {
+    if (shuttingDown) {
+      return;
+    }
+    shuttingDown = true;
+    console.log(`${signal} received, shutting down...`);
+
+    const force = setTimeout(() => {
+      console.error("Shutdown timed out, forcing exit.");
+      process.exit(1);
+    }, 10_000);
+    force.unref();
+
+    server.close(async (err) => {
+      if (err) {
+        console.error("Error closing server:", err);
+      }
+      try {
+        await db.$disconnect();
+      } catch (e) {
+        console.error("Error closing database:", e);
+      }
+      process.exit(err ? 1 : 0);
+    });
+    // Drop idle keep-alive connections so close() can complete.
+    server.closeIdleConnections();
+  };
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
 })();

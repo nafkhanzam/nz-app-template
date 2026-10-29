@@ -5,13 +5,30 @@
   import { page } from "$app/state";
   import { trpc_ } from "#lib/client.svelte";
   import { onMount } from "svelte";
+  import * as z from "zod";
+  import { consumeOIDCNonce } from "#lib/oidc-nonce";
+  import { safeRedirect } from "#lib/safe-redirect";
+
+  const stateSchema = z.object({
+    providerId: z.string().nonempty(),
+    nonce: z.string().nonempty(),
+    link: z.boolean().optional(),
+    redirectUrl: z.string().optional(),
+  });
 
   let isLoading = $state(true);
   let error = $state("");
 
   onMount(async () => {
     try {
-      const state = JSON.parse(page.url.searchParams.get("state") ?? "{}");
+      const state = stateSchema.parse(
+        JSON.parse(page.url.searchParams.get("state") ?? "{}"),
+      );
+
+      // Reject callbacks not started from this browser session (CSRF)
+      if (!consumeOIDCNonce(state.nonce)) {
+        throw new Error("Invalid or expired sign-in session. Please try again.");
+      }
 
       // Get the authorization code from URL parameters
       const code = page.url.searchParams.get("code");
@@ -21,7 +38,11 @@
       }
 
       // Exchange the code for tokens
-      const res = await trpc_.oidcHandleCallback.mutate({ code });
+      const res = await trpc_.oidcHandleCallback.mutate({
+        providerId: state.providerId,
+        code,
+        link: state.link,
+      });
 
       // Store tokens
       token.value = res.accessToken;
@@ -30,7 +51,7 @@
       toast.success("Successfully logged in with SSO!");
 
       // Redirect to home or previous page
-      goto(state.redirectUrl ?? "/");
+      goto(await safeRedirect(state.redirectUrl));
     } catch (err: any) {
       console.error("OIDC callback error:", err);
       error = err.message || "Failed to complete SSO login";

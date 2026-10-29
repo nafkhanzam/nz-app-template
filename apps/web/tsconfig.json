@@ -10,7 +10,11 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "paths": {
+      "#lib": ["./src/lib/index.ts"],
+      "#lib/*": ["./src/lib/*"]
+    }
   },
   "include": ["src", "test", "*"]
 }
