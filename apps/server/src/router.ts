@@ -18,6 +18,7 @@ import {
   oidcProviders,
   oidcUserInfo,
 } from "./functions/oidc.js";
+import { passwordStatus, setPassword } from "./functions/password.js";
 import { refresh } from "./functions/refresh.js";
 import { register } from "./functions/register.js";
 import { t } from "./trpc.js";
@@ -44,6 +45,8 @@ export const appRouter = t.router({
   stopImpersonating,
   refresh,
   changePassword,
+  passwordStatus,
+  setPassword,
   getUploadUrl,
   confirmUpload,
   crud: createZenStackRouter(schema, t) as unknown as AnyRouter,

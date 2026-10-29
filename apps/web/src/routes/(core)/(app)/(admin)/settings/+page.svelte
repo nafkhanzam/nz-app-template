@@ -92,8 +92,9 @@
     try {
       await trpc.setAppConfig.mutate({ key, value: value as never });
       toast.success(`Saved "${key}"`);
-      delete drafts[key];
+      // Keep the draft until the refetch lands; dropping it first would flash the stale value.
       await refresh();
+      delete drafts[key];
     } catch (error) {
       console.error("Error saving config:", error);
       toast.error(error instanceof Error ? error.message : `Failed to save "${key}"`);
@@ -160,11 +161,12 @@
               autoHeight
             />
           </div>
-          <label class="form-control">
-            <span class="label-text mb-1">Expected back (optional)</span>
+          <label class="floating-label">
+            <span>Expected back (optional)</span>
             <input
               type="datetime-local"
-              class="input input-bordered"
+              placeholder="Expected back (optional)"
+              class="input-bordered input h-12 w-full"
               bind:value={maintenance.until}
             />
           </label>
@@ -210,7 +212,10 @@
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body gap-4">
           <h2 class="card-title">Add key</h2>
-          <input class="input input-bordered input-sm w-full" placeholder="key" bind:value={newKey} />
+          <label class="floating-label">
+            <span>Key</span>
+            <input class="input-bordered input h-12 w-full" placeholder="Key" bind:value={newKey} />
+          </label>
           <MonacoEditor language="json" minHeight="6rem" autoHeight bind:value={newValue} />
           <div class="card-actions justify-end">
             <button class="btn btn-primary btn-sm" disabled={!newKey.trim()} onclick={addConfig}>

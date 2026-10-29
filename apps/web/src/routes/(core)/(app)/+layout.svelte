@@ -32,7 +32,9 @@
 
 <div class="drawer lg:drawer-open">
   <input id="app-drawer" type="checkbox" class="drawer-toggle" />
-  <div class="drawer-content">
+  <div
+    class="drawer-content bg-[color-mix(in_oklab,var(--color-primary)_6%,var(--color-base-100))]"
+  >
     <div class="sticky top-0 z-40">
       <Navbar />
     </div>
@@ -41,7 +43,7 @@
     </main>
     <Footer />
   </div>
-  <div class="drawer-side z-50">
+  <div class="drawer-side z-50 lg:shadow-xl">
     <Sidebar {items} />
   </div>
 </div>

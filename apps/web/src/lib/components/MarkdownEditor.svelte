@@ -35,7 +35,7 @@
     </button>
   </div>
   {#if previewing}
-    <div class="rounded-lg border-2 border-base-content/30 p-4" style="min-height: {minHeight};">
+    <div class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm" style="min-height: {minHeight};">
       <Markdown content={value} />
     </div>
   {/if}

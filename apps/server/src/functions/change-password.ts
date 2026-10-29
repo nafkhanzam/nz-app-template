@@ -7,24 +7,20 @@ export const changePassword = tuser
   .input(
     z.object({
       oldPassword: z.string(),
-      newPassword: z.string(),
+      newPassword: z.string().min(8),
     }),
   )
   .mutation(async ({ ctx: { db, user, log }, input }) => {
-    if (!user?.username) {
-      throw unauthorizedError;
-    }
-
     const found = await db.user.findUnique({
-      where: { username: user.username },
-      select: { username: true, password: true },
+      where: { id: user.id },
+      select: { id: true, passwordHash: true },
     });
-    if (!found?.password) {
+    if (!found?.passwordHash) {
       throw unauthorizedError;
     }
 
     // old must match
-    if (!bcrypt.compareSync(input.oldPassword, found.password)) {
+    if (!bcrypt.compareSync(input.oldPassword, found.passwordHash)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "Wrong old password.",
@@ -32,7 +28,7 @@ export const changePassword = tuser
     }
 
     // new must be different from old
-    if (bcrypt.compareSync(input.newPassword, found.password)) {
+    if (bcrypt.compareSync(input.newPassword, found.passwordHash)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "New password must be different from the old password.",
@@ -41,13 +37,11 @@ export const changePassword = tuser
 
     const newHashed = hashPassword(input.newPassword);
     await db.user.update({
-      where: { username: found.username },
+      where: { id: found.id },
       data: { passwordHash: newHashed },
     });
 
-    log.info(`changePassword`, {
-      input,
-    });
+    log.info(`changePassword`, { userId: found.id });
 
     return { success: true };
   });

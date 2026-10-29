@@ -3,6 +3,9 @@
   import { trpc } from "#lib/client.svelte";
   import { token, refresh } from "#lib/stores/token.svelte";
   import { goto } from "$app/navigation";
+  import Icon from "@iconify/svelte";
+  import LandingBackground from "#lib/components/LandingBackground.svelte";
+  import { constants } from "../_/constants";
 
   let name = $state("");
   let username = $state("");
@@ -44,79 +47,89 @@
     }
   };
 
-  const handleKeyPress = (event: KeyboardEvent) => {
-    if (event.key === "Enter") {
-      handleRegister();
-    }
-  };
+  const { brandName } = constants;
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-base-200">
-  <div class="card w-full max-w-md bg-base-100 shadow-2xl">
-    <div class="card-body">
-      <h1 class="text-3xl font-bold text-center mb-2">Create Account</h1>
-      <p class="text-center text-base-content/60 mb-6">Join us today</p>
-
-      <div class="form-control">
-        <label class="label">
-          <span class="label-text">Full Name</span>
-        </label>
-        <input
-          type="text"
-          placeholder="Enter your full name"
-          class="input input-bordered"
-          bind:value={name}
-          onkeypress={handleKeyPress}
-          disabled={isLoading}
-        />
+<LandingBackground>
+  <div class="relative mx-auto flex w-full max-w-md flex-1 items-center px-6 py-12">
+    <div
+      class="w-full rounded-3xl border border-base-content/10 bg-base-100/80 p-8 shadow-2xl backdrop-blur-xl"
+    >
+      <div
+        class="mb-4 inline-flex items-center gap-2 rounded-full border border-base-content/10 bg-base-100/60 px-3 py-1 text-xs font-medium"
+      >
+        <Icon icon="heroicons:academic-cap" class="h-4 w-4 text-secondary" />
+        {brandName}
       </div>
+      <h1 class="text-2xl font-bold">Create account</h1>
+      <p class="mt-1 mb-6 text-sm text-base-content/60">Join us today</p>
 
-      <div class="form-control mt-4">
-        <label class="label">
-          <span class="label-text">Username</span>
+      <form
+        class="flex flex-col gap-4"
+        onsubmit={(e) => {
+          e.preventDefault();
+          handleRegister();
+        }}
+      >
+        <label class="floating-label">
+          <span>Full Name</span>
+          <input
+            type="text"
+            autocomplete="name"
+            placeholder="Full Name"
+            class="input-bordered input h-12 w-full"
+            bind:value={name}
+            disabled={isLoading}
+          />
         </label>
-        <input
-          type="text"
-          placeholder="Choose a username"
-          class="input input-bordered"
-          bind:value={username}
-          onkeypress={handleKeyPress}
-          disabled={isLoading}
-        />
-      </div>
-
-      <div class="form-control mt-4">
-        <label class="label">
-          <span class="label-text">Password</span>
+        <label class="floating-label">
+          <span>Full Name</span>
+          <input
+            type="text"
+            autocomplete="name"
+            placeholder="Full Name"
+            class="input-bordered input h-12 w-full"
+            bind:value={name}
+            disabled={isLoading}
+          />
         </label>
-        <input
-          type="password"
-          placeholder="Create a password"
-          class="input input-bordered"
-          bind:value={password}
-          onkeypress={handleKeyPress}
-          disabled={isLoading}
-        />
-      </div>
-
-      <div class="form-control mt-4">
-        <label class="label">
-          <span class="label-text">Confirm Password</span>
+        <label class="floating-label">
+          <span>Username</span>
+          <input
+            type="text"
+            autocomplete="username"
+            placeholder="Username"
+            class="input-bordered input h-12 w-full"
+            bind:value={username}
+            disabled={isLoading}
+          />
         </label>
-        <input
-          type="password"
-          placeholder="Confirm your password"
-          class="input input-bordered"
-          bind:value={confirmPassword}
-          onkeypress={handleKeyPress}
-          disabled={isLoading}
-        />
-      </div>
+        <label class="floating-label">
+          <span>Password</span>
+          <input
+            type="password"
+            autocomplete="new-password"
+            placeholder="Password"
+            class="input-bordered input h-12 w-full"
+            bind:value={password}
+            disabled={isLoading}
+          />
+        </label>
+        <label class="floating-label">
+          <span>Confirm Password</span>
+          <input
+            type="password"
+            autocomplete="new-password"
+            placeholder="Confirm Password"
+            class="input-bordered input h-12 w-full"
+            bind:value={confirmPassword}
+            disabled={isLoading}
+          />
+        </label>
 
-      <div class="form-control mt-6">
         <button
-          class="btn btn-primary"
-          onclick={handleRegister}
+          type="submit"
+          class="btn h-12 text-base btn-primary"
           disabled={isLoading ||
             !name.trim() ||
             !username.trim() ||
@@ -130,14 +143,12 @@
             Sign Up
           {/if}
         </button>
-      </div>
+      </form>
 
-      <div class="text-center mt-4">
-        <p class="text-sm text-base-content/60">
-          Already have an account?
-          <a href="/login" class="link link-primary">Sign in</a>
-        </p>
-      </div>
+      <p class="mt-6 text-center text-sm text-base-content/60">
+        Already have an account?
+        <a href="/login" class="link link-primary">Sign in</a>
+      </p>
     </div>
   </div>
-</div>
+</LandingBackground>
