@@ -1,0 +1,12 @@
+#!/bin/bash -e
+# Usage: envs/run <localdev|localprod|production> <command...>
+# Decrypts envs/<env>.enc.yaml and runs the command with those variables.
+
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+env="$1"
+shift
+
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
+sops -d --output-type dotenv "$dir/$env.enc.yaml" >"$tmp"
+dotenvx run -f "$tmp" -- "$@"

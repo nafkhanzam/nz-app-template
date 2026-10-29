@@ -4,6 +4,7 @@
   import { toast } from "#lib";
   import favicon from "#lib/assets/favicon.svg";
   import { trpc } from "#lib/client.svelte";
+  import GlobalModal from "#lib/components/GlobalModal.svelte";
   import MaintenanceGate from "#lib/components/MaintenanceGate.svelte";
   import { AuthError, myFetch } from "#lib/my-fetch.svelte";
   import { token, userState } from "#lib/stores/token.svelte";
@@ -80,5 +81,6 @@
     {@render children()}
   </MaintenanceGate>
   <Toaster />
+  <GlobalModal />
   <!-- <SvelteQueryDevtools /> -->
 </QueryClientProvider>

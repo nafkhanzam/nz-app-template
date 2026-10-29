@@ -3,6 +3,9 @@
   import { trpc } from "#lib/client.svelte";
   import Container from "#lib/components/Container.svelte";
   import Loading from "#lib/components/Loading.svelte";
+  import MarkdownEditor from "#lib/components/MarkdownEditor.svelte";
+  import MonacoEditor from "#lib/components/MonacoEditor.svelte";
+  import { modalStore } from "#lib/stores/modal.svelte";
   import { user } from "#lib/stores/user.svelte";
   import { createQuery, useQueryClient } from "@tanstack/svelte-query";
 
@@ -98,7 +101,13 @@
   };
 
   const removeConfig = async (key: string) => {
-    if (!confirm(`Delete config "${key}"?`)) return;
+    const confirmed = await modalStore.confirm({
+      title: "Delete config",
+      message: `Delete config "${key}"?`,
+      confirmLabel: "Delete",
+      confirmClass: "btn-error",
+    });
+    if (!confirmed) return;
     try {
       await trpc.deleteAppConfig.mutate({ key });
       toast.success(`Deleted "${key}"`);
@@ -128,45 +137,50 @@
   {:else if configsQ.isPending}
     <Loading />
   {:else}
-    <section class="card mb-8 bg-base-100 shadow">
-      <div class="card-body gap-4">
-        <h2 class="card-title">Maintenance mode</h2>
-        <p class="text-sm text-base-content/70">
-          Non-admin users see a maintenance page while this is on. Admins can still use the app.
-        </p>
-        <label class="label cursor-pointer justify-start gap-3">
-          <input type="checkbox" class="toggle toggle-warning" bind:checked={maintenance.enabled} />
-          <span class="label-text">Enabled</span>
-        </label>
-        <label class="form-control">
-          <span class="label-text mb-1">Message (optional)</span>
-          <textarea
-            class="textarea textarea-bordered w-full"
-            rows="3"
-            placeholder="We're doing some scheduled work. Please check back soon."
-            bind:value={maintenance.message}></textarea>
-        </label>
-        <label class="form-control">
-          <span class="label-text mb-1">Expected back (optional)</span>
-          <input
-            type="datetime-local"
-            class="input input-bordered"
-            bind:value={maintenance.until}
-          />
-        </label>
-        <div class="card-actions justify-end">
-          <button class="btn btn-primary" disabled={saving} onclick={saveMaintenance}>Save</button>
+    <div class="space-y-4">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body gap-4">
+          <h2 class="card-title">Maintenance mode</h2>
+          <p class="text-sm text-base-content/70">
+            Non-admin users see a maintenance page while this is on. Admins can still use the app.
+          </p>
+          <label class="label cursor-pointer justify-start gap-3">
+            <input
+              type="checkbox"
+              class="toggle toggle-warning"
+              bind:checked={maintenance.enabled}
+            />
+            <span class="label-text">Enabled</span>
+          </label>
+          <div class="form-control">
+            <span class="label-text mb-1">Message (optional)</span>
+            <MarkdownEditor
+              bind:value={() => maintenance.message ?? "", (v) => (maintenance.message = v)}
+              minHeight="8rem"
+              autoHeight
+            />
+          </div>
+          <label class="form-control">
+            <span class="label-text mb-1">Expected back (optional)</span>
+            <input
+              type="datetime-local"
+              class="input input-bordered"
+              bind:value={maintenance.until}
+            />
+          </label>
+          <div class="card-actions justify-end">
+            <button class="btn btn-primary" disabled={saving} onclick={saveMaintenance}>
+              Save
+            </button>
+          </div>
         </div>
       </div>
-    </section>
 
-    <section class="card bg-base-100 shadow">
-      <div class="card-body gap-4">
-        <h2 class="card-title">Other config keys</h2>
-        {#each otherConfigs as c (c.key)}
-          <div class="rounded-box border border-base-300 p-3">
-            <div class="mb-2 flex items-center justify-between">
-              <code class="font-semibold">{c.key}</code>
+      {#each otherConfigs as c (c.key)}
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body gap-4">
+            <div class="flex items-center justify-between">
+              <h2 class="card-title font-mono text-base">{c.key}</h2>
               <div class="flex gap-2">
                 <button
                   class="btn btn-primary btn-xs"
@@ -177,32 +191,34 @@
                 >
               </div>
             </div>
-            <textarea
-              class="textarea textarea-bordered w-full font-mono text-xs"
-              rows="4"
-              value={draftOf(c.key, c.value)}
-              oninput={(e) => (drafts[c.key] = e.currentTarget.value)}></textarea>
+            <MonacoEditor
+              language="json"
+              minHeight="8rem"
+              autoHeight
+              bind:value={() => draftOf(c.key, c.value), (v) => (drafts[c.key] = v)}
+            />
           </div>
-        {:else}
-          <p class="text-sm text-base-content/60">No other keys.</p>
-        {/each}
+        </div>
+      {:else}
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <p class="py-2 text-center text-sm text-base-content/60">No other keys.</p>
+          </div>
+        </div>
+      {/each}
 
-        <div class="rounded-box border border-dashed border-base-300 p-3">
-          <div class="mb-2 font-semibold">Add key</div>
-          <input
-            class="input input-bordered input-sm mb-2 w-full"
-            placeholder="key"
-            bind:value={newKey}
-          />
-          <textarea
-            class="textarea textarea-bordered w-full font-mono text-xs"
-            rows="3"
-            bind:value={newValue}></textarea>
-          <div class="mt-2 text-right">
-            <button class="btn btn-sm" disabled={!newKey.trim()} onclick={addConfig}>Add</button>
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body gap-4">
+          <h2 class="card-title">Add key</h2>
+          <input class="input input-bordered input-sm w-full" placeholder="key" bind:value={newKey} />
+          <MonacoEditor language="json" minHeight="6rem" autoHeight bind:value={newValue} />
+          <div class="card-actions justify-end">
+            <button class="btn btn-primary btn-sm" disabled={!newKey.trim()} onclick={addConfig}>
+              Add
+            </button>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   {/if}
 </Container>

@@ -3,6 +3,7 @@
   import { page } from "$app/state";
   import { trpc_ } from "#lib/client.svelte";
   import Loading from "#lib/components/Loading.svelte";
+  import Markdown from "#lib/components/Markdown.svelte";
   import LandingBackground from "#lib/components/LandingBackground.svelte";
   import { token, userState } from "#lib/stores/token.svelte";
   import { createQuery } from "@tanstack/svelte-query";
@@ -70,9 +71,12 @@
             >maintenance</span
           >
         </h1>
-        <p class="mt-4 whitespace-pre-line text-base-content/70">
-          {maintenance.message ?? "We're doing some scheduled work. Please check back soon."}
-        </p>
+        <div class="mt-4 text-base-content/70">
+          <Markdown
+            content={maintenance.message ||
+              "We're doing some scheduled work. Please check back soon."}
+          />
+        </div>
         {#if maintenance.until}
           <p
             class="mt-5 inline-flex items-center gap-2 rounded-full bg-base-content/5 px-4 py-1.5 text-sm text-base-content/70"

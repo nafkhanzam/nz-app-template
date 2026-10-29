@@ -29,7 +29,7 @@
   <div class="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
     <!-- Page size -->
     <div class="flex items-center gap-2 text-sm">
-      <span class="text-base-content/60">Tampilkan</span>
+      <span class="text-base-content/60">Show</span>
       <select
         class="select select-bordered select-sm w-20"
         value={pagination.pageSize}
@@ -39,13 +39,13 @@
           <option value={opt}>{opt}</option>
         {/each}
       </select>
-      <span class="text-base-content/60">per halaman</span>
+      <span class="text-base-content/60">per page</span>
     </div>
 
     <!-- Info + controls -->
     <div class="flex items-center gap-4">
       <span class="text-sm text-base-content/60">
-        {startItem}–{endItem} dari {totalItems}
+        {startItem}–{endItem} of {totalItems}
       </span>
 
       <div class="join">

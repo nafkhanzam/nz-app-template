@@ -8,6 +8,7 @@ on:
       - production
     paths:
       - "apps/server/**"
+      - "envs/**"
       - "!apps/server/.*"
       - "!apps/server/src/scripts/**"
       - ".github/workflows/deploy.yml"
@@ -100,7 +101,7 @@ jobs:
         run: |
           set -euo pipefail
           ENV_TMP=$(mktemp)
-          sops -d "apps/server/.env.${{ github.ref_name }}.enc" >"$ENV_TMP"
+          sops -d --output-type dotenv "envs/${{ github.ref_name }}.enc.yaml" >"$ENV_TMP"
 
           # docker --env-file does not strip quotes or expand $VARS like a shell would,
           # but our .env values use both (e.g. DATABASE_URL="...$APP_NAME-$APP_ENV").

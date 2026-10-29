@@ -35,6 +35,13 @@ pnpm test:ui      # Playwright UI mode
 pnpm test:headed  # visible browser
 ```
 
+### Env files (`envs/`)
+```bash
+envs/run <localdev|localprod|production> <cmd>   # sops-decrypt envs/<env>.enc.yaml, run cmd with those vars
+pnpm -F server edit:env:<localdev|localprod|production>   # edit encrypted file via sops
+```
+One set of sops-encrypted files shared by server and web (`envs/template.env` lists all keys). Web only exposes `PUBLIC_*`. The web Dockerfile still builds from an `ENV_FILE` build arg written to `.env`, so filter it to `APP_*`/`PUBLIC_*` in CI.
+
 ### Local services
 ```bash
 docker compose -f docker-compose.services.yml up -d   # Postgres + MinIO

@@ -8,10 +8,10 @@
     "#lib/*": "./src/lib/*"
   },
   "scripts": {
-    "dev": "vite dev",
-    "dev:prod": "vite dev --mode localprod --host",
+    "dev": "../../envs/run localdev vite dev",
+    "dev:prod": "../../envs/run localprod vite dev --host",
     "build": "vite build",
-    "build:production": "vite build --mode production",
+    "build:production": "../../envs/run production vite build",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -42,6 +42,7 @@
     "@tanstack/svelte-query-devtools": "6.3.6",
     "@trpc/client": "11.19.0",
     "@trpc/server": "11.19.0",
+    "@types/katex": "0.16.8",
     "@zenstackhq/orm": "catalog:",
     "@zenstackhq/tanstack-query": "catalog:",
     "buffer": "6.0.3",
@@ -62,5 +63,11 @@
     "vite-plugin-node-polyfills": "0.28.0",
     "zenstack-trpc": "catalog:",
     "zod": "catalog:"
+  },
+  "dependencies": {
+    "dompurify": "3.4.14",
+    "katex": "0.18.7",
+    "marked": "18.0.10",
+    "monaco-editor": "0.56.0"
   }
 }

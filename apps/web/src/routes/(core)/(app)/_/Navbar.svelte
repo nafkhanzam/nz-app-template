@@ -27,8 +27,13 @@
 
   // Account dropdown items
   const accountDropdownItems: NavSingle[] = [
-    { _type: "single", label: "Profile", href: resolve("profile/") },
-    { _type: "single", label: "Logout", href: resolve("logout/") },
+    { _type: "single", label: "Profile", href: resolve("profile/"), icon: "heroicons:user" },
+    {
+      _type: "single",
+      label: "Logout",
+      href: resolve("logout/"),
+      icon: "heroicons:arrow-right-start-on-rectangle",
+    },
   ];
 
   const stopImpersonating = async () => {
@@ -95,10 +100,22 @@
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
         <ul tabindex="0" class="dropdown-content menu z-1 w-52 rounded-box bg-base-100 p-2 shadow">
           {#each accountDropdownItems as item (item.label)}
-            <li><a href={item.href}>{item.label}</a></li>
+            <li>
+              <a href={item.href}>
+                {#if item.icon}
+                  <Icon icon={item.icon} class="h-4 w-4" />
+                {/if}
+                {item.label}
+              </a>
+            </li>
           {/each}
           {#if user().impersonation}
-            <li><button onclick={stopImpersonating}>Stop impersonating</button></li>
+            <li>
+              <button onclick={stopImpersonating}>
+                <Icon icon="heroicons:arrow-uturn-left" class="h-4 w-4" />
+                Stop impersonating
+              </button>
+            </li>
           {/if}
         </ul>
       </div>

@@ -4,9 +4,12 @@
   import Query from "#lib/components/Query.svelte";
   import Pagination from "#lib/components/Pagination.svelte";
   import { usePagination } from "#lib/stores/pagination.svelte";
+  import { modalStore } from "#lib/stores/modal.svelte";
   import { user } from "#lib/stores/user.svelte";
   import { toast } from "#lib";
   import Container from "#lib/components/Container.svelte";
+  import Markdown from "#lib/components/Markdown.svelte";
+  import MarkdownEditor from "#lib/components/MarkdownEditor.svelte";
 
   const pagination = usePagination(10);
 
@@ -120,7 +123,13 @@
   };
 
   const onPostDelete = async (postId: string) => {
-    if (!confirm("Are you sure you want to delete this post?")) return;
+    const confirmed = await modalStore.confirm({
+      title: "Delete post",
+      message: "Are you sure you want to delete this post?",
+      confirmLabel: "Delete",
+      confirmClass: "btn-error",
+    });
+    if (!confirmed) return;
 
     try {
       await postDeleteQ.mutateAsync({ where: { id: postId } });
@@ -137,11 +146,7 @@
   <div class="card bg-base-100 shadow-xl my-4">
     <div class="card-body">
       <h2 class="card-title">Create a Post</h2>
-      <textarea
-        class="textarea textarea-bordered w-full"
-        placeholder="What's on your mind?"
-        bind:value={postContent}
-        rows="3"></textarea>
+      <MarkdownEditor bind:value={postContent} minHeight="8rem" autoHeight />
 
       <div class="form-control">
         <label class="label">
@@ -212,10 +217,7 @@
 
                 {#if editingPostId === post.id}
                   <div class="space-y-2">
-                    <textarea
-                      class="textarea textarea-bordered w-full"
-                      bind:value={editContent}
-                      rows="3"></textarea>
+                    <MarkdownEditor bind:value={editContent} minHeight="8rem" autoHeight />
                     <div class="flex gap-2 justify-end">
                       <button
                         class="btn btn-sm btn-ghost"
@@ -234,7 +236,7 @@
                     </div>
                   </div>
                 {:else}
-                  <p class="whitespace-pre-wrap">{post.content}</p>
+                  <Markdown content={post.content} />
                 {/if}
 
                 {#if post.Image}

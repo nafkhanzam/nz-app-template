@@ -1,9 +1,0 @@
-#!/bin/bash -e
-
-env="$1"
-shift
-
-tmp=$(mktemp)
-trap 'rm -f "$tmp"' EXIT
-sops -d ".env${env:+.$env}.enc" >"$tmp"
-dotenvx run -f "$tmp" -- "$@"
