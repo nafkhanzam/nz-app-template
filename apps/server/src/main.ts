@@ -27,7 +27,6 @@ import { schema } from "./zenstack/schema.js";
       }
       return "";
     })();
-    console.log("⬅️ ", req.method, req.path, JSON.parse(JSON.stringify(body)));
 
     next();
   });
@@ -119,7 +118,6 @@ import { schema } from "./zenstack/schema.js";
       return;
     }
     shuttingDown = true;
-    console.log(`${signal} received, shutting down...`);
 
     const force = setTimeout(() => {
       console.error("Shutdown timed out, forcing exit.");

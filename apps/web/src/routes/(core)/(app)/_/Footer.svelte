@@ -7,7 +7,7 @@
 
   const currentYear = new Date().getFullYear();
 
-  const quickLinks = [{ label: "Home", href: resolve("/") }];
+  const quickLinks = [{ label: "Home", href: "/" }];
 
   const resourceLinks = [{ label: "Nafkhanzam Website", href: "https://www.nafkhanzam.com" }];
 </script>

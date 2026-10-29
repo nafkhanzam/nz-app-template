@@ -4,5 +4,5 @@
 </script>
 
 <Container>
-  <a href={resolve("/(core)/(app)/posts")} class="btn btn-link">Go to /posts</a>
+  <a href={resolve("posts/")} class="btn btn-link">Go to /posts</a>
 </Container>

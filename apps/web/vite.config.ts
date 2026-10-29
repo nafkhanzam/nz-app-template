@@ -16,7 +16,6 @@ const gracefulShutdown = (): Plugin => ({
         return;
       }
       shuttingDown = true;
-      server.config.logger.info(`\n${signal} received, shutting down...`);
       setTimeout(() => process.exit(1), 5_000).unref();
       server.close().then(
         () => process.exit(0),

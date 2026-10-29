@@ -6,8 +6,9 @@
 
   $effect(() => {
     if (userState.tokenInvalid && !userState.data) {
-      // console.log(`goto(resolve("/login"));`)
-      window.location.href = resolve("/login") + `?redirect=${encodeURIComponent(location.pathname + location.search + location.hash)}`;
+      window.location.href =
+        resolve("login/") +
+        `?redirect=${encodeURIComponent(location.pathname + location.search + location.hash)}`;
     }
   });
 </script>

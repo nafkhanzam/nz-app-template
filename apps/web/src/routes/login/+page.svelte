@@ -6,6 +6,7 @@
   import Icon from "@iconify/svelte";
   import { trpc_ } from "#lib/client.svelte";
   import { onMount } from "svelte";
+  import LandingBackground from "#lib/components/LandingBackground.svelte";
   import { constants } from "../_/constants";
   import { createOIDCNonce } from "#lib/oidc-nonce";
   import { safeRedirect } from "#lib/safe-redirect";
@@ -42,6 +43,16 @@
   };
 
   onMount(async () => {
+    // TEMP: hardcoded dummy providers for previewing the UI. Remove this block.
+    // {
+    //   providers = [
+    //     { id: "google", name: "Google", iconUrl: "https://www.google.com/favicon.ico" },
+    //     { id: "github", name: "GitHub", iconUrl: "https://github.com/favicon.ico" },
+    //     { id: "its", name: "Institut Teknologi Sepuluh Nopember" },
+    //     { id: "broken", name: "Broken Icon", iconUrl: "https://invalid.invalid/icon.png" },
+    //   ];
+    //   return;
+    // }
     try {
       providers = await trpc_.oidcProviders.query();
     } catch (error: any) {
@@ -66,31 +77,13 @@
   };
 
   const { brandName } = constants;
+
   const busy = $derived(isLoading || isOIDCLoading);
 </script>
 
-<div
-  class="relative min-h-screen overflow-hidden bg-base-300 [--color-accent-content:#fff] [--color-accent:#a855f7] [--color-primary-content:#fff] [--color-primary:#6366f1] [--color-secondary-content:#042f3a] [--color-secondary:#22d3ee]"
->
-  <!-- Background -->
-  <div class="pointer-events-none absolute inset-0" aria-hidden="true">
-    <div
-      class="absolute inset-0 bg-[radial-gradient(color-mix(in_oklab,var(--color-base-content)_14%,transparent)_1px,transparent_1px)] bg-size-[22px_22px] mask-[radial-gradient(ellipse_at_center,black_30%,transparent_75%)]"
-    ></div>
-    <div class="absolute -top-40 -left-32 h-136 w-136 rounded-full bg-primary/30 blur-3xl"></div>
-    <div
-      class="absolute -right-32 -bottom-40 h-136 w-136 rounded-full bg-secondary/25 blur-3xl"
-    ></div>
-    <div
-      class="absolute top-1/3 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-accent/15 blur-3xl"
-    ></div>
-    <div
-      class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgb(0_0_0/0.18)_100%)]"
-    ></div>
-  </div>
-
+<LandingBackground>
   <div
-    class="relative mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-6 py-12 lg:grid-cols-2"
+    class="relative mx-auto grid w-full max-w-6xl flex-1 items-center gap-12 px-6 py-12 lg:grid-cols-2"
   >
     <!-- Hero -->
     <section class="text-center lg:text-left">
@@ -115,7 +108,7 @@
             <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15">
               <Icon icon="mdi:shield-account" class="h-5 w-5 text-primary" />
             </span>
-            Single sign-on with {providers.map((p) => p.name).join(", ")}
+            Single sign-on
           </li>
         {/if}
         <li class="flex items-center gap-3">
@@ -159,7 +152,7 @@
                     <Icon icon="mdi:shield-account" width="20" height="20" class="text-primary" />
                   {/if}
                 </span>
-                <span class="flex-1 text-left">Continue with {provider.name}</span>
+                <span class="flex-1 text-left">{provider.name}</span>
                 {#if isOIDCLoading}
                   <span class="loading loading-sm loading-spinner"></span>
                 {:else}
@@ -169,7 +162,7 @@
             {/each}
           </div>
 
-          <div class="divider my-6 text-xs text-base-content/50 uppercase">or with username</div>
+          <div class="divider my-6 text-xs text-base-content/50 uppercase">or</div>
         {/if}
 
         <form
@@ -221,4 +214,9 @@
       </div>
     </section>
   </div>
-</div>
+
+  <p class="relative px-6 pb-6 text-center text-sm text-base-content/60">
+    © {new Date().getFullYear()}
+    {brandName}. All rights reserved.
+  </p>
+</LandingBackground>

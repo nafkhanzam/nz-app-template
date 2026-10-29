@@ -31,7 +31,11 @@
   $effect(() => {
     if (!configsQ.data || maintenanceLoaded) return;
     const row = configsQ.data.find((c: { key: string }) => c.key === MAINTENANCE_KEY);
-    const v = (row?.value ?? {}) as { enabled?: boolean; message?: string | null; until?: string | null };
+    const v = (row?.value ?? {}) as {
+      enabled?: boolean;
+      message?: string | null;
+      until?: string | null;
+    };
     maintenance = {
       enabled: v.enabled === true,
       message: v.message ?? "",
@@ -68,10 +72,11 @@
   };
 
   // Everything other than "maintenance": raw JSON editor per key.
-  const otherConfigs = $derived((configsQ.data ?? []).filter((c: { key: string }) => c.key !== MAINTENANCE_KEY));
+  const otherConfigs = $derived(
+    (configsQ.data ?? []).filter((c: { key: string }) => c.key !== MAINTENANCE_KEY),
+  );
   let drafts = $state<Record<string, string>>({});
-  const draftOf = (key: string, value: unknown) =>
-    drafts[key] ?? JSON.stringify(value, null, 2);
+  const draftOf = (key: string, value: unknown) => drafts[key] ?? JSON.stringify(value, null, 2);
 
   const saveRaw = async (key: string, text: string) => {
     let value: unknown;
@@ -139,12 +144,15 @@
             class="textarea textarea-bordered w-full"
             rows="3"
             placeholder="We're doing some scheduled work. Please check back soon."
-            bind:value={maintenance.message}
-          ></textarea>
+            bind:value={maintenance.message}></textarea>
         </label>
         <label class="form-control">
           <span class="label-text mb-1">Expected back (optional)</span>
-          <input type="datetime-local" class="input input-bordered" bind:value={maintenance.until} />
+          <input
+            type="datetime-local"
+            class="input input-bordered"
+            bind:value={maintenance.until}
+          />
         </label>
         <div class="card-actions justify-end">
           <button class="btn btn-primary" disabled={saving} onclick={saveMaintenance}>Save</button>
@@ -173,8 +181,7 @@
               class="textarea textarea-bordered w-full font-mono text-xs"
               rows="4"
               value={draftOf(c.key, c.value)}
-              oninput={(e) => (drafts[c.key] = e.currentTarget.value)}
-            ></textarea>
+              oninput={(e) => (drafts[c.key] = e.currentTarget.value)}></textarea>
           </div>
         {:else}
           <p class="text-sm text-base-content/60">No other keys.</p>
@@ -182,12 +189,15 @@
 
         <div class="rounded-box border border-dashed border-base-300 p-3">
           <div class="mb-2 font-semibold">Add key</div>
-          <input class="input input-bordered input-sm mb-2 w-full" placeholder="key" bind:value={newKey} />
+          <input
+            class="input input-bordered input-sm mb-2 w-full"
+            placeholder="key"
+            bind:value={newKey}
+          />
           <textarea
             class="textarea textarea-bordered w-full font-mono text-xs"
             rows="3"
-            bind:value={newValue}
-          ></textarea>
+            bind:value={newValue}></textarea>
           <div class="mt-2 text-right">
             <button class="btn btn-sm" disabled={!newKey.trim()} onclick={addConfig}>Add</button>
           </div>
