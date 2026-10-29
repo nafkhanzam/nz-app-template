@@ -1,5 +1,5 @@
 <script lang="ts">
-  const {message} = $props<{message: string | Error}>();
+  const { message }: { message: string | Error } = $props();
 </script>
 
 <div class="alert alert-error">

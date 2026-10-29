@@ -6,7 +6,7 @@ import {
   getFileSize,
   getFileUrl,
 } from "../s3.js";
-import { PrefixFile, prefixSizeMap } from "../shared/upload.js";
+import { type PrefixFile, prefixSizeMap } from "../shared/upload.js";
 import { tuser } from "../trpc.js";
 
 /**

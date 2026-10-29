@@ -9,7 +9,6 @@
   },
   "scripts": {
     "dev": "../../envs/run localdev vite dev",
-    "dev:prod": "../../envs/run localprod vite dev --host",
     "build": "vite build",
     "build:production": "../../envs/run production vite build",
     "preview": "vite preview",

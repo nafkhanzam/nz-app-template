@@ -1,5 +1,5 @@
 <script lang="ts">
-  const {message} = $props<{message: string}>();
+  const { message }: { message: string } = $props();
 </script>
 
 <div class="alert alert-warning">

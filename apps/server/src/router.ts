@@ -24,7 +24,7 @@ import { register } from "./functions/register.js";
 import { t } from "./trpc.js";
 import { createZenStackRouter } from "zenstack-trpc";
 import { schema } from "./zenstack/schema.js";
-import { AnyRouter } from "@trpc/server";
+import type { AnyRouter } from "@trpc/server";
 
 export const appRouter = t.router({
   hello,

@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import { Context } from "./context.js";
+import type { Context } from "./context.js";
 import { env } from "./env.js";
 import { bcrypt, jwt, z } from "./lib.js";
 import { jwtPayloadV, type JWTPayload } from "./shared/jwt.js";
-import { User } from "./zenstack/models.js";
+import type { User } from "./zenstack/models.js";
 
 export const unauthorizedError = new TRPCError({
   code: "UNAUTHORIZED",

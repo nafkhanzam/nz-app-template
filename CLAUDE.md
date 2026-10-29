@@ -6,9 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Root (monorepo)
 ```bash
-pnpm dev          # run both apps concurrently
+pnpm cli <localdev|localprod|production> <command>   # env-aware tasks (below)
 pnpm typecheck    # typecheck all workspaces
 ```
+
+`./cli` (see `./cli --help`) loads the sops env for the given environment, then runs:
+`dev [server|web]` (server + web + studio in parallel by default), `studio`, `generate`, `push`, `seed`, `migrate [deploy]`, `build [server|web]`, `edit` (sops-edit the env file), `exec <cmd...>`.
+The per-app scripts below remain for localdev.
 
 ### Server (`apps/server`)
 ```bash
@@ -38,7 +42,7 @@ pnpm test:headed  # visible browser
 ### Env files (`envs/`)
 ```bash
 envs/run <localdev|localprod|production> <cmd>   # sops-decrypt envs/<env>.enc.yaml, run cmd with those vars
-pnpm -F server edit:env:<localdev|localprod|production>   # edit encrypted file via sops
+pnpm cli <localdev|localprod|production> edit    # edit encrypted file via sops
 ```
 One set of sops-encrypted files shared by server and web (`envs/template.env` lists all keys). Web only exposes `PUBLIC_*`. The web Dockerfile still builds from an `ENV_FILE` build arg written to `.env`, so filter it to `APP_*`/`PUBLIC_*` in CI.
 

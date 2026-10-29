@@ -1,10 +1,10 @@
 import type { ExpressMiddlewareOptions } from "@zenstackhq/server/express";
 import { verifyAccessToken } from "./common.js";
 import { authDb, db } from "./db.js";
-import { JsonObject, type trpcExpress } from "./lib.js";
+import { type JsonObject, type trpcExpress } from "./lib.js";
 import { createLog } from "./log.js";
 import { s3 } from "./s3.js";
-import { JWTPayload } from "./shared/jwt.js";
+import type { JWTPayload } from "./shared/jwt.js";
 import type { SchemaType } from "./zenstack/schema.js";
 
 const getUserFromToken = (token: string | undefined): JWTPayload | null => {

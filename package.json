@@ -5,14 +5,7 @@
   "main": "index.js",
   "scripts": {
     "typecheck": "pnpm -r typecheck",
-    "dev": "pnpm run --no-bail \"/^dev:.*/\"",
-    "prod": "pnpm run --no-bail \"/^prod:.*/\"",
-    "dev:server": "pnpm -F server dev",
-    "dev:studio": "pnpm -F server db:studio",
-    "dev:web": "pnpm -F web dev",
-    "prod:server": "pnpm -F server dev:prod",
-    "prod:studio": "pnpm -F server db:studio:prod",
-    "prod:web": "pnpm -F web dev:prod"
+    "cli": "./cli"
   },
   "keywords": [],
   "author": "",

@@ -1,0 +1,80 @@
+#!/bin/bash -e
+# Usage: ./cli <localdev|localprod|production> <command> [args...]   (pnpm cli ...)
+# Runs a project task with the sops-decrypted variables of the given environment.
+
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+run="$root/envs/run"
+
+usage() {
+  cat <<USAGE
+Usage: pnpm cli <env> <command> [args...]
+
+env:      localdev | localprod
+
+commands:
+  dev [server|web]   start server, web and studio in parallel (or just one)
+  studio             ZenStack studio
+  generate           regenerate ZenStack artifacts
+  push               push schema without migration (dev only)
+  seed               run the seed script
+  migrate [deploy]   create + apply a migration; 'deploy' applies existing ones
+  build [server|web] production build (both by default)
+  edit               edit the encrypted env file via sops
+  exec <cmd...>      run any command with the env loaded
+USAGE
+  exit "${1:-1}"
+}
+
+env="$1"
+cmd="$2"
+case "$env" in
+localdev | localprod) ;;
+-h | --help | help) usage 0 ;;
+*) usage ;;
+esac
+[ -n "$cmd" ] || usage
+shift 2
+
+server() { (cd "$root/apps/server" && "$run" "$env" "$@"); }
+web() { (cd "$root/apps/web" && "$run" "$env" "$@"); }
+
+case "$cmd" in
+dev)
+  # Only the local-dev web server stays on localhost.
+  host=()
+  [ "$env" = localdev ] || host=(--host)
+  case "${1:-all}" in
+  server) server ./node_modules/.bin/tsx watch src/main ;;
+  web) web pnpm exec vite dev "${host[@]}" ;;
+  all)
+    trap 'kill 0' EXIT
+    server ./node_modules/.bin/tsx watch src/main &
+    web pnpm exec vite dev "${host[@]}" &
+    server pnpm exec zen studio &
+    wait
+    ;;
+  *) usage ;;
+  esac
+  ;;
+studio) server pnpm exec zen studio ;;
+generate) server pnpm exec zen generate ;;
+push) server pnpm exec zen db push ;;
+seed) server ./node_modules/.bin/tsx src/scripts/seed.ts ;;
+migrate)
+  if [ "${1:-dev}" = deploy ]; then server pnpm exec zen migrate deploy; else server pnpm exec zen migrate dev; fi
+  ;;
+build)
+  case "${1:-all}" in
+  server) server pnpm exec tsc -b ;;
+  web) web pnpm exec vite build ;;
+  all)
+    server pnpm exec tsc -b
+    web pnpm exec vite build
+    ;;
+  *) usage ;;
+  esac
+  ;;
+edit) EDITOR="${EDITOR:-code --wait}" sops "$root/envs/$env.enc.yaml" ;;
+exec) "$run" "$env" "$@" ;;
+*) usage ;;
+esac
