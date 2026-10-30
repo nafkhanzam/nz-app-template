@@ -2,7 +2,6 @@ import { TRPCError } from "@trpc/server";
 import {
   getAllowedRedirectOrigins,
   getOIDCProviders,
-  isAllowedRedirect,
   type OIDCProvider,
 } from "../app-config.js";
 import { generateTokensFromUser } from "../common.js";
@@ -136,12 +135,6 @@ export const oidcInitiateLogin = t.procedure
     }),
   )
   .query(async ({ input }) => {
-    if (input.redirectUrl && !(await isAllowedRedirect(input.redirectUrl))) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Redirect URL is not allowed",
-      });
-    }
     const provider = await getProvider(input.providerId);
     const config = await getOIDCConfiguration(provider);
     const state: OIDCState = {

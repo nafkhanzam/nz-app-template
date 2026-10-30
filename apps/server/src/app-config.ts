@@ -14,19 +14,6 @@ export const oidcProviderSchema = z.object({
 
 export type OIDCProvider = z.infer<typeof oidcProviderSchema>;
 
-export const maintenanceSchema = z.object({
-  enabled: z.boolean(),
-  message: z.string().nullable().optional(),
-  until: z.iso.datetime().nullable().optional(),
-});
-
-/** Known keys and their value schemas; unknown keys accept any JSON. */
-export const appConfigSchemas: Record<string, z.ZodType> = {
-  oidc_providers: z.array(oidcProviderSchema),
-  allowed_redirect_origins: z.array(z.url()),
-  maintenance: maintenanceSchema,
-};
-
 /**
  * Read `AppConfig.oidc_providers` (raw db: AppConfig is denied by policies).
  * Missing row means no providers configured.
@@ -56,31 +43,4 @@ export async function getAllowedRedirectOrigins(): Promise<string[]> {
     .array(z.url())
     .parse(row.value)
     .map((url) => new URL(url).origin);
-}
-
-/** Same-origin absolute path, or an absolute http(s) URL on an allowed origin. */
-export async function isAllowedRedirect(value: string): Promise<boolean> {
-  if (value.startsWith("/")) {
-    return !value.startsWith("//") && !value.startsWith("/\\");
-  }
-  try {
-    const url = new URL(value);
-    return (
-      (url.protocol === "https:" || url.protocol === "http:") &&
-      (await getAllowedRedirectOrigins()).includes(url.origin)
-    );
-  } catch {
-    return false;
-  }
-}
-
-/** Read `AppConfig.maintenance`. Missing or invalid row means maintenance is off. */
-export async function getMaintenance() {
-  const row = await db.appConfig.findUnique({ where: { key: "maintenance" } });
-  const res = maintenanceSchema.safeParse(row?.value);
-  return {
-    enabled: res.success && res.data.enabled,
-    message: (res.success && res.data.message) || null,
-    until: (res.success && res.data.until) || null,
-  };
 }

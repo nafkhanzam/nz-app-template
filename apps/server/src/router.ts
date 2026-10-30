@@ -1,10 +1,5 @@
-import {
-  deleteAppConfig,
-  listAppConfigs,
-  maintenance,
-  setAppConfig,
-} from "./functions/app-config.js";
 import { changePassword } from "./functions/change-password.js";
+import { maintenance } from "./functions/maintenance.js";
 import { confirmUpload, getUploadUrl } from "./functions/file-upload.js";
 import { hello } from "./functions/hello.js";
 import { impersonate, stopImpersonating } from "./functions/impersonate.js";
@@ -36,9 +31,6 @@ export const appRouter = t.router({
   oidcProviders,
   oidcUserInfo,
   allowedRedirectOrigins,
-  listAppConfigs,
-  setAppConfig,
-  deleteAppConfig,
   maintenance,
   me,
   impersonate,

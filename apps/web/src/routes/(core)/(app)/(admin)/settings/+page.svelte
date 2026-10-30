@@ -15,7 +15,7 @@
 
   const configsQ = createQuery(() => ({
     queryKey: ["appConfigs"],
-    queryFn: () => trpc.listAppConfigs.query(),
+    queryFn: () => trpc.crud.appConfig.findMany.query({ orderBy: { key: "asc" } }),
     enabled: isAdmin,
   }));
 
@@ -53,17 +53,21 @@
     await queryClient.invalidateQueries({ queryKey: ["maintenance"] });
   };
 
+  const upsertConfig = (key: string, value: unknown) =>
+    trpc.crud.appConfig.upsert.mutate({
+      where: { key },
+      create: { key, value: value as never },
+      update: { value: value as never },
+    });
+
   let saving = $state(false);
   const saveMaintenance = async () => {
     saving = true;
     try {
-      await trpc.setAppConfig.mutate({
-        key: MAINTENANCE_KEY,
-        value: {
-          enabled: maintenance.enabled,
-          message: maintenance.message.trim() || null,
-          until: maintenance.until ? new Date(maintenance.until).toISOString() : null,
-        },
+      await upsertConfig(MAINTENANCE_KEY, {
+        enabled: maintenance.enabled,
+        message: maintenance.message.trim() || null,
+        until: maintenance.until ? new Date(maintenance.until).toISOString() : null,
       });
       toast.success("Maintenance settings saved");
       await refresh();
@@ -91,7 +95,7 @@
       return;
     }
     try {
-      await trpc.setAppConfig.mutate({ key, value: value as never });
+      await upsertConfig(key, value);
       toast.success(`Saved "${key}"`);
       // Keep the draft until the refetch lands; dropping it first would flash the stale value.
       await refresh();
@@ -111,7 +115,7 @@
     });
     if (!confirmed) return;
     try {
-      await trpc.deleteAppConfig.mutate({ key });
+      await trpc.crud.appConfig.delete.mutate({ where: { key } });
       toast.success(`Deleted "${key}"`);
       await refresh();
     } catch (error) {

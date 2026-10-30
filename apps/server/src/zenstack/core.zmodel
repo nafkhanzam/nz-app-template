@@ -106,5 +106,5 @@ model AppConfig with Timestamps {
   key   String @id
   value Json
 
-  @@deny('all', true)
+  @@allow('all', auth().role == ADMIN)
 }
