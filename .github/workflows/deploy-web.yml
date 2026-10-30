@@ -53,6 +53,15 @@ jobs:
 
       # CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and APP_NAME (the Pages project name)
       # come from the decrypted env, so the command runs in a shell that has them loaded.
+      # `pages deploy` doesn't create the project, so create it first; only "already exists" is tolerated.
+      - name: Ensure Cloudflare Pages project
+        run: |
+          ./cli "$APP_ENV_NAME" exec bash -c '
+            out=$(pnpm dlx wrangler@4 pages project create "$APP_NAME" --production-branch=production 2>&1) && status=0 || status=$?
+            echo "$out"
+            [ "$status" -eq 0 ] || echo "$out" | grep -qi "already exists"
+          '
+
       - name: Deploy to Cloudflare Pages
         run:
           |

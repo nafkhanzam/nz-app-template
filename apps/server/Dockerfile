@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-FROM node:alpine AS base
-RUN corepack enable && corepack prepare pnpm@12.5.1 --activate
+FROM node:22-alpine AS base
+RUN npm install -g pnpm@12.16.1
 RUN pnpm config set store-dir /pnpm/store
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

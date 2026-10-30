@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
-FROM node:alpine AS base
-RUN corepack enable && corepack prepare pnpm --activate
+FROM node:22-alpine AS base
+RUN npm install -g pnpm@12.16.1
 WORKDIR /app
 
 # Install dependencies
