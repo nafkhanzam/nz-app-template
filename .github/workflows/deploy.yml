@@ -25,7 +25,6 @@ env:
 
 jobs:
   deploy:
-    if: false
     runs-on: self-hosted
     steps:
       - name: Checkout
@@ -33,7 +32,8 @@ jobs:
 
       - name: Resolve blue/green slots
         id: slots
-        run: |
+        run:
+          |
           set -euo pipefail
           echo "STATE_DIR=/home/nafkhanzam/kode/running-prod/$IMAGE-deploy-state" >>"$GITHUB_ENV"
           echo "PUBLIC_DOMAIN=$IMAGE.nafkhan.id" >>"$GITHUB_ENV"
@@ -81,7 +81,8 @@ jobs:
           echo "Caddy snippet path (point the Caddyfile's import here once): $CADDY_SNIPPET"
 
       - name: Ensure Caddy site block exists
-        run: |
+        run:
+          |
           set -euo pipefail
           CADDY_SNIPPET="${{ steps.slots.outputs.caddy_snippet }}"
           [ -f "$CADDY_SNIPPET" ] || printf 'reverse_proxy 127.0.0.1:%s\n' "${{ steps.slots.outputs.current_port }}" >"$CADDY_SNIPPET"
@@ -92,13 +93,15 @@ jobs:
           fi
 
       - name: Build image
-        run: |
+        run:
+          |
           set -euo pipefail
           docker build -f apps/server/Dockerfile -t "$IMAGE:${{ github.sha }}" .
 
       - name: Decrypt deployment env
         id: env
-        run: |
+        run:
+          |
           set -euo pipefail
           ENV_TMP=$(mktemp)
           sops -d --output-type dotenv "envs/${{ github.ref_name }}.enc.yaml" >"$ENV_TMP"
@@ -125,14 +128,16 @@ jobs:
           echo "path=$RESOLVED_TMP" >>"$GITHUB_OUTPUT"
 
       - name: Run database migrations
-        run: |
+        run:
+          |
           set -euo pipefail
           docker run --rm --env-file "${{ steps.env.outputs.path }}" \
             "$IMAGE:${{ github.sha }}" \
             node_modules/.bin/zen migrate deploy
 
       - name: Ensure S3 bucket exists
-        run: |
+        run:
+          |
           set -euo pipefail
           docker run --rm --env-file "${{ steps.env.outputs.path }}" \
             "$IMAGE:${{ github.sha }}" \
@@ -140,7 +145,8 @@ jobs:
 
       - name: Start target slot container
         id: start
-        run: |
+        run:
+          |
           set -euo pipefail
           TARGET="${{ steps.slots.outputs.target }}"
           TARGET_PORT="${{ steps.slots.outputs.target_port }}"
@@ -153,7 +159,8 @@ jobs:
             "$IMAGE:${{ github.sha }}"
 
       - name: Health check target slot
-        run: |
+        run:
+          |
           set -euo pipefail
           TARGET_PORT="${{ steps.slots.outputs.target_port }}"
           TARGET="${{ steps.slots.outputs.target }}"
@@ -170,7 +177,8 @@ jobs:
           exit 1
 
       - name: Cut over Caddy to target slot
-        run: |
+        run:
+          |
           set -euo pipefail
           TARGET_PORT="${{ steps.slots.outputs.target_port }}"
           CADDY_SNIPPET="${{ steps.slots.outputs.caddy_snippet }}"
@@ -179,7 +187,8 @@ jobs:
           "$CADDY_BIN" reload --config "$CADDYFILE"
 
       - name: Verify public endpoint after cutover
-        run: |
+        run:
+          |
           set -euo pipefail
           for i in $(seq 1 15); do
             if curl -fsS "$PUBLIC_HEALTH_URL" >/dev/null 2>&1; then
@@ -193,17 +202,20 @@ jobs:
 
       - name: Persist active slot
         if: success()
-        run: |
+        run:
+          |
           set -euo pipefail
           echo "${{ steps.slots.outputs.target }}" >"$STATE_DIR/active_slot"
           echo "Live slot is now '${{ steps.slots.outputs.target }}'. Old slot '${{ steps.slots.outputs.current }}' left running for rollback."
 
       - name: Clean up resolved env
         if: always()
-        run: |
+        run:
+          |
           rm -f "${{ steps.env.outputs.path }}"
 
       - name: Prune old images
         if: success()
-        run: |
+        run:
+          |
           docker image prune -f --filter "until=72h" || true
