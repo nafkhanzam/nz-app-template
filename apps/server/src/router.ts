@@ -6,7 +6,6 @@ import { impersonate, stopImpersonating } from "./functions/impersonate.js";
 import { login } from "./functions/login.js";
 import { me } from "./functions/me.js";
 import {
-  allowedRedirectOrigins,
   oidcHandleCallback,
   oidcInitiateLogin,
   oidcLogout,
@@ -30,7 +29,6 @@ export const appRouter = t.router({
   oidcLogout,
   oidcProviders,
   oidcUserInfo,
-  allowedRedirectOrigins,
   maintenance,
   me,
   impersonate,

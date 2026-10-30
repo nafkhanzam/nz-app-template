@@ -45,7 +45,6 @@ const DUMMY_OIDC_PROVIDERS: OIDCProvider[] = [
 
 const APP_CONFIGS: Record<string, JsonValue> = {
   oidc_providers: DUMMY_OIDC_PROVIDERS as unknown as JsonValue,
-  allowed_redirect_origins: [],
   maintenance: { enabled: false, message: null, until: null },
 };
 

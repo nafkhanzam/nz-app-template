@@ -8,7 +8,6 @@
   import { onMount } from "svelte";
   import * as z from "zod";
   import { consumeOIDCNonce } from "#lib/oidc-nonce";
-  import { safeRedirect } from "#lib/safe-redirect";
 
   const stateSchema = z.object({
     providerId: z.string().nonempty(),
@@ -52,7 +51,7 @@
       toast.success("Successfully logged in with SSO!");
 
       // Redirect to home or previous page
-      goto(await safeRedirect(state.redirectUrl));
+      goto(state.redirectUrl || "/");
     } catch (err: any) {
       console.error("OIDC callback error:", err);
       error = err.message || "Failed to complete SSO login";

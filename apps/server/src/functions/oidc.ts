@@ -1,6 +1,5 @@
 import { TRPCError } from "@trpc/server";
 import {
-  getAllowedRedirectOrigins,
   getOIDCProviders,
   type OIDCProvider,
 } from "../app-config.js";
@@ -112,13 +111,6 @@ async function getOIDCConfiguration(
  */
 export const oidcProviders = t.procedure.query(async () =>
   (await getOIDCProviders()).map(({ id, name, issuer, iconUrl }) => ({ id, name, issuer, iconUrl })),
-);
-
-/**
- * Origins post-login redirects may target (public; client validates against it)
- */
-export const allowedRedirectOrigins = t.procedure.query(() =>
-  getAllowedRedirectOrigins(),
 );
 
 /**

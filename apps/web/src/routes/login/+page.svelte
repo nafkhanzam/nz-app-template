@@ -10,7 +10,6 @@
   import PageTitle from "../_/PageTitle.svelte";
   import { constants } from "../_/constants";
   import { createOIDCNonce } from "#lib/oidc-nonce";
-  import { safeRedirect } from "#lib/safe-redirect";
 
   let username = $state("");
   let password = $state("");
@@ -35,7 +34,7 @@
       token.value = res.accessToken;
       refresh.value = res.refreshToken;
       toast.success("Login successful!");
-      goto(await safeRedirect(rawRedirect));
+      goto(rawRedirect || "/");
     } catch (error: any) {
       toast.error(error.message || "Login failed");
     } finally {
@@ -67,7 +66,7 @@
       const res = await trpc_.oidcInitiateLogin.query({
         providerId,
         nonce: createOIDCNonce(),
-        redirectUrl: await safeRedirect(rawRedirect),
+        redirectUrl: rawRedirect || "/",
       });
       // Redirect to OIDC provider's login page
       window.location.href = res.authUrl;

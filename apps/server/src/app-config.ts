@@ -27,20 +27,3 @@ export async function getOIDCProviders(): Promise<OIDCProvider[]> {
   }
   return z.array(oidcProviderSchema).parse(row.value);
 }
-
-/**
- * Read `AppConfig.allowed_redirect_origins`: JSON array of origins (e.g.
- * ["https://other.example.com"]) that post-login redirects may point to.
- */
-export async function getAllowedRedirectOrigins(): Promise<string[]> {
-  const row = await db.appConfig.findUnique({
-    where: { key: "allowed_redirect_origins" },
-  });
-  if (!row) {
-    return [];
-  }
-  return z
-    .array(z.url())
-    .parse(row.value)
-    .map((url) => new URL(url).origin);
-}
