@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageTitle from "../_/PageTitle.svelte";
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { token, refresh, userState } from "#lib/stores/token.svelte";
@@ -20,6 +21,8 @@
     goto("/login");
   });
 </script>
+
+<PageTitle title="Logging out" />
 
 <div class="min-h-screen flex items-center justify-center bg-base-200">
   <div class="card w-full max-w-md bg-base-100 shadow-2xl">

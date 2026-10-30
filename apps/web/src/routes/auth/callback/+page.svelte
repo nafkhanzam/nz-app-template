@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageTitle from "../../_/PageTitle.svelte";
   import { toast } from "#lib";
   import { token, refresh } from "#lib/stores/token.svelte";
   import { goto } from "$app/navigation";
@@ -60,6 +61,8 @@
     }
   });
 </script>
+
+<PageTitle title="Signing in" />
 
 <div class="min-h-screen flex items-center justify-center bg-base-200">
   <div class="card w-full max-w-md bg-base-100 shadow-2xl">

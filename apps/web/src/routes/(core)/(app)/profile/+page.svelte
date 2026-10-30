@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageTitle from "../../../_/PageTitle.svelte";
   import Icon from "@iconify/svelte";
   import { user } from "#lib/stores/user.svelte";
   import { trpc } from "#lib/client.svelte";
@@ -131,6 +132,8 @@
     { icon: "heroicons:shield-check", label: "Role", value: getRoleLabel(currentUser.role) },
   ]);
 </script>
+
+<PageTitle title="Profile" />
 
 {#snippet panel(title: string, icon: string, body: Snippet)}
   <section class="rounded-3xl border border-base-content/10 bg-base-100 p-6 shadow-2xl">

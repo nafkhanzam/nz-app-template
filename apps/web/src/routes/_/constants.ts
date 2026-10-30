@@ -1,3 +1,3 @@
 export const constants = {
-  brandName: "nz-app-template",
+  brandName: "NZ APP",
 };

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageTitle from "../../../_/PageTitle.svelte";
   import { uploadFile, getFileUrl } from "#lib";
   import { client } from "#lib/client.svelte";
   import Query from "#lib/components/Query.svelte";
@@ -141,6 +142,8 @@
     }
   };
 </script>
+
+<PageTitle title="Posts" />
 
 <Container>
   <div class="card bg-base-100 shadow-xl my-4">

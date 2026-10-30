@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageTitle from "../../../../_/PageTitle.svelte";
   import { toast } from "#lib";
   import { trpc } from "#lib/client.svelte";
   import Container from "#lib/components/Container.svelte";
@@ -129,6 +130,8 @@
     newValue = "{}";
   };
 </script>
+
+<PageTitle title="Settings" />
 
 <Container>
   <h1 class="mb-6 text-3xl font-bold">App settings</h1>

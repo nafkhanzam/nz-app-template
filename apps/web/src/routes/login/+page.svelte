@@ -7,6 +7,7 @@
   import { trpc_ } from "#lib/client.svelte";
   import { onMount } from "svelte";
   import LandingBackground from "#lib/components/LandingBackground.svelte";
+  import PageTitle from "../_/PageTitle.svelte";
   import { constants } from "../_/constants";
   import { createOIDCNonce } from "#lib/oidc-nonce";
   import { safeRedirect } from "#lib/safe-redirect";
@@ -80,6 +81,8 @@
 
   const busy = $derived(isLoading || isOIDCLoading);
 </script>
+
+<PageTitle title="Login" />
 
 <LandingBackground>
   <div

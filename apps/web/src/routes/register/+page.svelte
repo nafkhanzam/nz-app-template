@@ -5,6 +5,7 @@
   import { goto } from "$app/navigation";
   import Icon from "@iconify/svelte";
   import LandingBackground from "#lib/components/LandingBackground.svelte";
+  import PageTitle from "../_/PageTitle.svelte";
   import { constants } from "../_/constants";
 
   let name = $state("");
@@ -49,6 +50,8 @@
 
   const { brandName } = constants;
 </script>
+
+<PageTitle title="Register" />
 
 <LandingBackground>
   <div class="relative mx-auto flex w-full max-w-md flex-1 items-center px-6 py-12">

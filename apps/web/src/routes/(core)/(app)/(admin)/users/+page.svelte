@@ -1,4 +1,5 @@
 <script lang="ts">
+  import PageTitle from "../../../../_/PageTitle.svelte";
   import Icon from "@iconify/svelte";
   import { client, trpc } from "#lib/client.svelte";
   import { toast } from "#lib";
@@ -39,6 +40,8 @@
     }
   };
 </script>
+
+<PageTitle title="Users" />
 
 <div class="container mx-auto px-4 py-8">
   <div class="card bg-base-100 shadow-xl">
