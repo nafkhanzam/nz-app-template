@@ -13,11 +13,12 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # envs/<name>.enc.yaml holding CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and APP_NAME.
-  APP_ENV_NAME: production
+  # envs/<branch>.enc.yaml holding CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and APP_NAME.
+  APP_ENV_NAME: ${{ github.ref_name }}
 
 jobs:
   rollback:
+    if: contains(fromJSON('["development","staging","production"]'), github.ref_name)
     runs-on: self-hosted
     permissions:
       contents: read

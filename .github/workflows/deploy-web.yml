@@ -3,6 +3,8 @@ name: Deploy web (Cloudflare Pages)
 on:
   push:
     branches:
+      - development
+      - staging
       - production
     paths:
       - "apps/web/**"
@@ -17,8 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # envs/<name>.enc.yaml used for the build; PUBLIC_* values are baked into the bundle.
-  APP_ENV_NAME: production
+  # envs/<branch>.enc.yaml used for the build; PUBLIC_* values are baked into the bundle.
+  APP_ENV_NAME: ${{ github.ref_name }}
 
 jobs:
   deploy:
