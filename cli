@@ -29,6 +29,7 @@ commands:
   generate           regenerate ZenStack artifacts
   push               push schema without migration (dev only)
   seed               run the seed script
+  reset              drop all data and re-push the schema (asks to confirm unless localdev)
   migrate [deploy]   create + apply a migration; 'deploy' applies existing ones
   build [server|web] production build (both by default)
   edit               edit the encrypted env file via sops
@@ -75,6 +76,13 @@ studio) server pnpm exec zen studio ;;
 generate) server pnpm exec zen generate ;;
 push) server pnpm exec zen db push ;;
 seed) server ./node_modules/.bin/tsx src/scripts/seed.ts ;;
+reset)
+  if [ "$env" != localdev ]; then
+    read -r -p "This wipes the '$env' database. Type '$env' to continue: " answer
+    [ "$answer" = "$env" ] || { echo "Aborted." >&2; exit 1; }
+  fi
+  server pnpm exec zen db push --force-reset
+  ;;
 migrate)
   if [ "${1:-dev}" = deploy ]; then server pnpm exec zen migrate deploy; else server pnpm exec zen migrate dev; fi
   ;;

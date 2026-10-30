@@ -5,6 +5,14 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 CREATE TYPE "FileStatus" AS ENUM ('PENDING', 'UPLOADED', 'FAILED');
 
 -- CreateTable
+CREATE TABLE "RolePermission" (
+    "role" "Role" NOT NULL,
+    "permissions" TEXT[],
+
+    CONSTRAINT "RolePermission_pkey" PRIMARY KEY ("role")
+);
+
+-- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -14,11 +22,23 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "email" TEXT,
     "role" "Role" NOT NULL,
-    "oidc_issuer" TEXT,
-    "oidc_userInfo" JSONB,
-    "oidc_sub" TEXT,
+    "permissions" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "image" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UserOidc" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
+    "issuer" TEXT NOT NULL,
+    "sub" TEXT NOT NULL,
+    "userInfo" JSONB NOT NULL,
+
+    CONSTRAINT "UserOidc_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -48,6 +68,16 @@ CREATE TABLE "RefreshToken" (
 );
 
 -- CreateTable
+CREATE TABLE "AppConfig" (
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "key" TEXT NOT NULL,
+    "value" JSONB NOT NULL,
+
+    CONSTRAINT "AppConfig_pkey" PRIMARY KEY ("key")
+);
+
+-- CreateTable
 CREATE TABLE "Post" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -63,7 +93,10 @@ CREATE TABLE "Post" (
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_oidc_sub_key" ON "User"("oidc_sub");
+CREATE UNIQUE INDEX "UserOidc_issuer_sub_key" ON "UserOidc"("issuer", "sub");
+
+-- AddForeignKey
+ALTER TABLE "UserOidc" ADD CONSTRAINT "UserOidc_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "File" ADD CONSTRAINT "File_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
