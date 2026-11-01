@@ -1,6 +1,7 @@
 <script lang="ts">
   import PageTitle from "../../../_/PageTitle.svelte";
   import Icon from "@iconify/svelte";
+  import { resolve } from "$app/paths";
   import { user } from "#lib/stores/user.svelte";
   import { trpc } from "#lib/client.svelte";
   import { toast } from "#lib";
@@ -167,9 +168,15 @@
       <div class="text-center sm:text-left">
         <h1 class="text-3xl font-black tracking-tight sm:text-4xl">{currentUser.name}</h1>
         <p class="mt-1 text-base-content/70">@{currentUser.username}</p>
-        <span class="badge mt-3 {getRoleBadgeClass(currentUser.role)}">
-          {getRoleLabel(currentUser.role)}
-        </span>
+        <div class="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+          <span class="badge {getRoleBadgeClass(currentUser.role)}">
+            {getRoleLabel(currentUser.role)}
+          </span>
+          <a href={resolve("profile/edit/")} class="btn btn-outline btn-xs gap-1">
+            <Icon icon="heroicons:pencil" class="h-3.5 w-3.5" />
+            Edit profile
+          </a>
+        </div>
       </div>
     </div>
 

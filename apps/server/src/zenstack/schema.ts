@@ -112,6 +112,20 @@ export class SchemaType implements SchemaDef {
                     type: "Post",
                     array: true,
                     relation: { opposite: "User" }
+                },
+                Report: {
+                    name: "Report",
+                    type: "Report",
+                    array: true,
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("ReportAuthor") }] }] as readonly AttributeApplication[],
+                    relation: { opposite: "User", name: "ReportAuthor" }
+                },
+                ReportReplied: {
+                    name: "ReportReplied",
+                    type: "Report",
+                    array: true,
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("ReportResponder") }] }] as readonly AttributeApplication[],
+                    relation: { opposite: "RespondedBy", name: "ReportResponder" }
                 }
             },
             attributes: [
@@ -244,6 +258,12 @@ export class SchemaType implements SchemaDef {
                     type: "Post",
                     array: true,
                     relation: { opposite: "Image" }
+                },
+                Report: {
+                    name: "Report",
+                    type: "Report",
+                    array: true,
+                    relation: { opposite: "File" }
                 }
             },
             attributes: [
@@ -335,6 +355,116 @@ export class SchemaType implements SchemaDef {
             idFields: ["key"],
             uniqueFields: {
                 key: { type: "String" }
+            }
+        },
+        Report: {
+            name: "Report",
+            fields: {
+                id: {
+                    name: "id",
+                    type: "String",
+                    id: true,
+                    attributes: [{ name: "@id" }, { name: "@default", args: [{ name: "value", value: ExpressionUtils.call("cuid") }] }] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("cuid") as FieldDefault
+                },
+                createdAt: {
+                    name: "createdAt",
+                    type: "DateTime",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.call("now") }] }] as readonly AttributeApplication[],
+                    default: ExpressionUtils.call("now") as FieldDefault
+                },
+                updatedAt: {
+                    name: "updatedAt",
+                    type: "DateTime",
+                    updatedAt: true,
+                    attributes: [{ name: "@updatedAt" }] as readonly AttributeApplication[]
+                },
+                userId: {
+                    name: "userId",
+                    type: "String",
+                    foreignKeyFor: [
+                        "User"
+                    ] as readonly string[]
+                },
+                User: {
+                    name: "User",
+                    type: "User",
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("ReportAuthor") }, { name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("userId")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }] }] as readonly AttributeApplication[],
+                    relation: { opposite: "Report", name: "ReportAuthor", fields: ["userId"], references: ["id"] }
+                },
+                type: {
+                    name: "type",
+                    type: "ReportType"
+                },
+                status: {
+                    name: "status",
+                    type: "ReportStatus",
+                    attributes: [{ name: "@default", args: [{ name: "value", value: ExpressionUtils.literal("OPEN") }] }] as readonly AttributeApplication[],
+                    default: "OPEN" as FieldDefault
+                },
+                title: {
+                    name: "title",
+                    type: "String"
+                },
+                description: {
+                    name: "description",
+                    type: "String",
+                    optional: true
+                },
+                fileKey: {
+                    name: "fileKey",
+                    type: "String",
+                    optional: true,
+                    foreignKeyFor: [
+                        "File"
+                    ] as readonly string[]
+                },
+                File: {
+                    name: "File",
+                    type: "File",
+                    optional: true,
+                    attributes: [{ name: "@relation", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("fileKey")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("key")]) }] }] as readonly AttributeApplication[],
+                    relation: { opposite: "Report", fields: ["fileKey"], references: ["key"] }
+                },
+                response: {
+                    name: "response",
+                    type: "String",
+                    optional: true,
+                    attributes: [{ name: "@allow", args: [{ name: "operation", value: ExpressionUtils.literal("update") }, { name: "condition", value: ExpressionUtils.binary(ExpressionUtils.member(ExpressionUtils.call("auth"), ["role"]), "==", ExpressionUtils.literal("ADMIN")) }] }] as readonly AttributeApplication[]
+                },
+                respondedAt: {
+                    name: "respondedAt",
+                    type: "DateTime",
+                    optional: true,
+                    attributes: [{ name: "@allow", args: [{ name: "operation", value: ExpressionUtils.literal("update") }, { name: "condition", value: ExpressionUtils.binary(ExpressionUtils.member(ExpressionUtils.call("auth"), ["role"]), "==", ExpressionUtils.literal("ADMIN")) }] }] as readonly AttributeApplication[]
+                },
+                respondedById: {
+                    name: "respondedById",
+                    type: "String",
+                    optional: true,
+                    attributes: [{ name: "@allow", args: [{ name: "operation", value: ExpressionUtils.literal("update") }, { name: "condition", value: ExpressionUtils.binary(ExpressionUtils.member(ExpressionUtils.call("auth"), ["role"]), "==", ExpressionUtils.literal("ADMIN")) }] }] as readonly AttributeApplication[],
+                    foreignKeyFor: [
+                        "RespondedBy"
+                    ] as readonly string[]
+                },
+                RespondedBy: {
+                    name: "RespondedBy",
+                    type: "User",
+                    optional: true,
+                    attributes: [{ name: "@relation", args: [{ name: "name", value: ExpressionUtils.literal("ReportResponder") }, { name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("respondedById")]) }, { name: "references", value: ExpressionUtils.array("String", [ExpressionUtils.field("id")]) }] }] as readonly AttributeApplication[],
+                    relation: { opposite: "ReportReplied", name: "ReportResponder", fields: ["respondedById"], references: ["id"] }
+                }
+            },
+            attributes: [
+                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("create") }, { name: "condition", value: ExpressionUtils.binary(ExpressionUtils.member(ExpressionUtils.call("auth"), ["id"]), "==", ExpressionUtils.field("userId")) }] },
+                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("read,update,delete") }, { name: "condition", value: ExpressionUtils.binary(ExpressionUtils.binary(ExpressionUtils.member(ExpressionUtils.call("auth"), ["id"]), "==", ExpressionUtils.field("userId")), "&&", ExpressionUtils.binary(ExpressionUtils.field("status"), "==", ExpressionUtils.literal("OPEN"))) }] },
+                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("read") }, { name: "condition", value: ExpressionUtils.binary(ExpressionUtils.member(ExpressionUtils.call("auth"), ["id"]), "==", ExpressionUtils.field("userId")) }] },
+                { name: "@@allow", args: [{ name: "operation", value: ExpressionUtils.literal("all") }, { name: "condition", value: ExpressionUtils.binary(ExpressionUtils.member(ExpressionUtils.call("auth"), ["role"]), "==", ExpressionUtils.literal("ADMIN")) }] },
+                { name: "@@index", args: [{ name: "fields", value: ExpressionUtils.array("String", [ExpressionUtils.field("userId")]) }] }
+            ] as readonly AttributeApplication[],
+            idFields: ["id"],
+            uniqueFields: {
+                id: { type: "String" }
             }
         },
         Post: {
@@ -515,6 +645,22 @@ export class SchemaType implements SchemaDef {
                 PENDING: "PENDING",
                 UPLOADED: "UPLOADED",
                 FAILED: "FAILED"
+            }
+        },
+        ReportType: {
+            name: "ReportType",
+            values: {
+                BUG: "BUG",
+                FEEDBACK: "FEEDBACK"
+            }
+        },
+        ReportStatus: {
+            name: "ReportStatus",
+            values: {
+                OPEN: "OPEN",
+                IN_PROGRESS: "IN_PROGRESS",
+                RESOLVED: "RESOLVED",
+                CLOSED: "CLOSED"
             }
         }
     } as const;

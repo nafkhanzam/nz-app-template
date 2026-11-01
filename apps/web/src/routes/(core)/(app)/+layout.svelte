@@ -25,6 +25,7 @@
           },
         ] as const)
       : []),
+    { _type: "single", icon: "heroicons:bug-ant", label: "Reports", href: resolve("reports/") },
     { _type: "divider" },
     { _type: "single", icon: "heroicons:user", label: "My Profile", href: resolve("profile/") },
   ]);

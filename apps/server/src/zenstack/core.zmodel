@@ -49,6 +49,8 @@ model User with Base {
   RefreshToken  RefreshToken[]
   File          File[]
   Post          Post[]
+  Report        Report[]    @relation("ReportAuthor")
+  ReportReplied Report[]    @relation("ReportResponder")
 
   @@allow('read', true)
   @@allow('create', auth().role == ADMIN)
@@ -88,6 +90,7 @@ model File with Timestamps {
   status           FileStatus
 
   Post             Post[]
+  Report           Report[]
 
   @@allow('read', true)
   @@allow('all', auth().id == userId)
@@ -107,4 +110,42 @@ model AppConfig with Timestamps {
   value Json
 
   @@allow('all', auth().role == ADMIN)
+}
+
+enum ReportType {
+  BUG
+  FEEDBACK
+}
+
+enum ReportStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Report with Base {
+  userId      String
+  User        User         @relation("ReportAuthor", fields: [userId], references: [id])
+
+  type        ReportType
+  status      ReportStatus @default(OPEN)
+
+  title       String
+  description String?
+
+  fileKey     String?
+  File        File?        @relation(fields: [fileKey], references: [key])
+
+  response      String?      @allow('update', auth().role == ADMIN)
+  respondedAt   DateTime?    @allow('update', auth().role == ADMIN)
+  respondedById String?      @allow('update', auth().role == ADMIN)
+  RespondedBy   User?        @relation("ReportResponder", fields: [respondedById], references: [id])
+
+  @@allow('create', auth().id == userId)
+  @@allow('read,update,delete', auth().id == userId && status == OPEN)
+  @@allow('read', auth().id == userId)
+  @@allow('all', auth().role == ADMIN)
+
+  @@index([userId])
 }

@@ -3,7 +3,7 @@ import { hashPassword } from "../common.js";
 import { db } from "../db.js";
 import { env } from "../env.js";
 import type { JsonValue } from "../lib.js";
-import { Role, type User } from "../zenstack/models.js";
+import { ReportStatus, ReportType, Role, type User } from "../zenstack/models.js";
 
 if (env.APP_ENV === "production") {
   throw new Error(
@@ -63,6 +63,7 @@ async function dropAll() {
   await db.$executeRaw`
     TRUNCATE TABLE
       "Post",
+      "Report",
       "UserOidc",
       "File",
       "RefreshToken",
@@ -129,6 +130,40 @@ async function main() {
     ]),
   });
   console.log(`📝 Seeded ${everyone.length * 2} posts.`);
+
+  const reportSeeds = [
+    {
+      type: ReportType.BUG,
+      status: ReportStatus.OPEN,
+      title: "Profile page flickers on load",
+      description: "## Steps\n\n1. Open **Profile**\n2. Reload the page",
+    },
+    {
+      type: ReportType.FEEDBACK,
+      status: ReportStatus.IN_PROGRESS,
+      title: "Add a dark theme toggle to the login page",
+      description: null,
+    },
+    {
+      type: ReportType.BUG,
+      status: ReportStatus.RESOLVED,
+      title: "Posts list shows duplicates",
+      description: "Fixed in the latest release.",
+    },
+    {
+      type: ReportType.FEEDBACK,
+      status: ReportStatus.CLOSED,
+      title: "Support CSV export",
+      description: "Closed as won't do.",
+    },
+  ];
+  await db.report.createMany({
+    data: users.slice(0, reportSeeds.length).map((u, i) => ({
+      userId: u.id,
+      ...reportSeeds[i]!,
+    })),
+  });
+  console.log(`🐛 Seeded ${reportSeeds.length} reports.`);
 
   console.log("✅ Seed complete. Logins (username / password):");
   console.log(`  ${admin.username} / ${SEED_PASSWORD}  (ADMIN)`);

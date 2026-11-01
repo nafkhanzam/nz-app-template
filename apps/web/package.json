@@ -41,7 +41,9 @@
     "@tanstack/svelte-query-devtools": "6.3.6",
     "@trpc/client": "11.19.0",
     "@trpc/server": "11.19.0",
+    "@types/event-source-polyfill": "1.0.5",
     "@types/katex": "0.16.8",
+    "@types/papaparse": "5.5.2",
     "@zenstackhq/orm": "catalog:",
     "@zenstackhq/tanstack-query": "catalog:",
     "buffer": "6.0.3",
@@ -65,8 +67,13 @@
   },
   "dependencies": {
     "dompurify": "3.4.14",
+    "event-source-polyfill": "1.0.31",
+    "jsqr": "1.4.0",
+    "jszip": "3.10.1",
     "katex": "0.18.7",
     "marked": "18.0.10",
-    "monaco-editor": "0.56.0"
+    "monaco-editor": "0.56.0",
+    "papaparse": "5.7.0",
+    "xlsx": "0.18.5"
   }
 }

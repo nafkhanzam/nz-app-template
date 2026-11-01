@@ -80,7 +80,10 @@
 
       <!-- Account dropdown -->
       <div class="dropdown dropdown-end">
-        <div tabindex="0" role="button" class="btn btn-ghost">
+        <div tabindex="0" role="button" class="btn relative btn-ghost">
+          {#if user().role !== "USER"}
+            <span class="absolute top-0 right-0 badge badge-xs badge-primary">{user().role}</span>
+          {/if}
           {#if user().image}
             <div class="avatar">
               <div class="w-6 rounded-full">
@@ -92,9 +95,6 @@
           {/if}
           <div class="hidden sm:inline">
             <span>{user().name}</span>
-            {#if user().role !== "USER"}
-              <span>({user().role})</span>
-            {/if}
           </div>
         </div>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->

@@ -15,6 +15,7 @@ import {
 import { passwordStatus, setPassword } from "./functions/password.js";
 import { refresh } from "./functions/refresh.js";
 import { register } from "./functions/register.js";
+import { onUserEvents } from "./functions/user-events.js";
 import { t } from "./trpc.js";
 import { createZenStackRouter } from "zenstack-trpc";
 import { schema } from "./zenstack/schema.js";
@@ -39,6 +40,7 @@ export const appRouter = t.router({
   setPassword,
   getUploadUrl,
   confirmUpload,
+  onUserEvents,
   crud: createZenStackRouter(schema, t) as unknown as AnyRouter,
 });
 

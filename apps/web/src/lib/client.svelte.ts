@@ -7,6 +7,7 @@ import {
   splitLink,
   type HTTPHeaders,
 } from "@trpc/client";
+import { EventSourcePolyfill } from "event-source-polyfill";
 import SuperJSON from "superjson";
 import type { AppRouter } from "../../../server/src/router";
 import type { SchemaType } from "../../../server/src/zenstack/schema";
@@ -25,6 +26,14 @@ const createTRPC = (fetch?: Parameters<typeof httpBatchLink>[0]["fetch"]) =>
         true: httpSubscriptionLink({
           transformer: SuperJSON,
           url: `${PUBLIC_BACKEND_URL}/trpc`,
+          // The browser EventSource can't set headers, so a polyfill sends the
+          // bare Authorization token (read afresh on every reconnect).
+          EventSource: EventSourcePolyfill,
+          eventSourceOptions: () => {
+            const headers: Record<string, string> = {};
+            if (token.value) headers.Authorization = token.value;
+            return { headers };
+          },
         }),
         false: httpBatchLink({
           transformer: SuperJSON,
