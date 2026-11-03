@@ -1,13 +1,13 @@
 <script lang="ts">
   import { resolve } from "$app/paths";
   import Icon from "@iconify/svelte";
+  import favicon from "#lib/assets/favicon.svg";
   import { constants } from "../../../_/constants";
   import { type NavSingle } from "./lib";
   import ThemeToggle from "#lib/components/ThemeToggle.svelte";
   import { user } from "#lib/stores/user.svelte";
-  import { trpc } from "#lib/client.svelte";
-  import { toast } from "#lib";
-  import { refresh, token } from "#lib/stores/token.svelte";
+  import { confirmLogout } from "./confirm-logout";
+  import { stopImpersonating } from "./stop-impersonating";
   import { trpc_ } from "#lib/client.svelte";
   import { createQuery } from "@tanstack/svelte-query";
 
@@ -33,32 +33,20 @@
       label: "Logout",
       href: resolve("logout/"),
       icon: "heroicons:arrow-right-start-on-rectangle",
+      danger: true,
+      onclick: confirmLogout,
     },
   ];
-
-  const stopImpersonating = async () => {
-    if (!refresh.value) return;
-    try {
-      const tokens = await trpc.stopImpersonating.mutate({ refreshToken: refresh.value });
-      token.value = tokens.accessToken;
-      refresh.value = tokens.refreshToken;
-      // Full reload so nothing cached for the impersonated user lingers.
-      window.location.reload();
-    } catch (error) {
-      console.error("Error stopping impersonation:", error);
-      toast.error("Failed to stop impersonating");
-    }
-  };
 </script>
 
-<div class="bg-base-300 shadow-lg">
-  <div class="navbar container mx-auto">
+<div class="border-b border-base-content/10 bg-base-100 text-base-content shadow-lg">
+  <div class="navbar px-4">
     <div class="navbar-start gap-2">
       <label for="app-drawer" aria-label="open sidebar" class="btn btn-ghost btn-square lg:hidden">
         <Icon icon="heroicons:bars-3" class="h-5 w-5" />
       </label>
-      <a href={brandHref} class="btn gap-2 text-xl btn-ghost">
-        <Icon icon="heroicons:academic-cap" class="h-6 w-6" />
+      <a href={brandHref} class="btn gap-2 px-3 text-xl btn-ghost">
+        <img src={favicon} alt="" class="h-6 w-6" />
         {brandName}
       </a>
     </div>
@@ -98,10 +86,21 @@
           </div>
         </div>
         <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-        <ul tabindex="0" class="dropdown-content menu z-1 w-52 rounded-box bg-base-100 p-2 shadow">
+        <ul
+          tabindex="0"
+          class="dropdown-content menu z-1 w-52 rounded-box bg-base-100 p-2 text-base-content shadow"
+        >
           {#each accountDropdownItems as item (item.label)}
             <li>
-              <a href={item.href}>
+              <a
+                href={item.href}
+                class={item.danger ? "text-error" : ""}
+                onclick={(e) => {
+                  if (!item.onclick) return;
+                  e.preventDefault();
+                  item.onclick();
+                }}
+              >
                 {#if item.icon}
                   <Icon icon={item.icon} class="h-4 w-4" />
                 {/if}

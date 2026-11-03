@@ -4,6 +4,9 @@ export type NavSingle = {
   label: string;
   href: string;
   icon?: string;
+  danger?: boolean;
+  // Replaces default navigation to href (href stays as the fallback).
+  onclick?: () => void | Promise<void>;
 };
 export type NavDropdown = {
   _type: "dropdown";

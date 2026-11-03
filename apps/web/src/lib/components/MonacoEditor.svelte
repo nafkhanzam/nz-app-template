@@ -121,5 +121,5 @@
   style="min-height: {minHeight}; height: {autoHeight
     ? `max(${minHeight}, ${contentHeight + 24}px)`
     : minHeight};"
-  class="resize-y overflow-hidden rounded-box"
+  class="resize-y overflow-hidden rounded-box border border-base-content/20"
 ></div>

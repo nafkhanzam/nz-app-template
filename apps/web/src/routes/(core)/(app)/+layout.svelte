@@ -5,6 +5,7 @@
   import Navbar from "./_/Navbar.svelte";
   import Sidebar from "./_/Sidebar.svelte";
   import type { SidebarItem } from "./_/lib";
+  import { confirmLogout } from "./_/confirm-logout";
 
   let { children } = $props();
 
@@ -28,23 +29,33 @@
     { _type: "single", icon: "heroicons:bug-ant", label: "Reports", href: resolve("reports/") },
     { _type: "divider" },
     { _type: "single", icon: "heroicons:user", label: "My Profile", href: resolve("profile/") },
+    {
+      _type: "single",
+      icon: "heroicons:arrow-right-start-on-rectangle",
+      label: "Logout",
+      href: resolve("logout/"),
+      danger: true,
+      onclick: confirmLogout,
+    },
   ]);
 </script>
 
+<!-- Navbar spans the full width above the drawer; its hamburger label toggles #app-drawer. -->
+<div class="sticky top-0 z-40 lg:z-60">
+  <Navbar />
+</div>
 <div class="drawer lg:drawer-open">
   <input id="app-drawer" type="checkbox" class="drawer-toggle" />
   <div
     class="drawer-content bg-[color-mix(in_oklab,var(--color-primary)_6%,var(--color-base-100))]"
   >
-    <div class="sticky top-0 z-40">
-      <Navbar />
-    </div>
-    <main class="min-h-screen">
+    <main class="min-h-[calc(100vh-4rem)]">
       {@render children()}
     </main>
     <Footer />
   </div>
-  <div class="drawer-side z-50 lg:shadow-xl">
+  <!-- On desktop the sidebar is sticky below the 4rem navbar instead of from the viewport top. -->
+  <div class="drawer-side z-50 lg:top-16 lg:h-[calc(100dvh-4rem)]">
     <Sidebar {items} />
   </div>
 </div>

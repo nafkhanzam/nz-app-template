@@ -6,6 +6,7 @@
   import { modalStore } from "#lib/stores/modal.svelte";
   import { user } from "#lib/stores/user.svelte";
   import { refresh, token } from "#lib/stores/token.svelte";
+  import Loading from "#lib/components/Loading.svelte";
   import Pagination from "#lib/components/Pagination.svelte";
   import { usePagination } from "#lib/stores/pagination.svelte";
 
@@ -52,7 +53,9 @@
         <span class="text-sm font-normal text-base-content/50">({countQ.data ?? 0})</span>
       </h1>
 
-      {#if (usersQ.data ?? []).length === 0}
+      {#if usersQ.isLoading}
+        <div class="flex justify-center py-4"><Loading /></div>
+      {:else if (usersQ.data ?? []).length === 0}
         <div class="py-4 text-center text-sm text-base-content/60">No users yet.</div>
       {:else}
         <div class="overflow-x-auto">

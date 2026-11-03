@@ -7,6 +7,7 @@
   import { toast } from "#lib";
   import { onMount } from "svelte";
   import type { Snippet } from "svelte";
+  import Loading from "#lib/components/Loading.svelte";
   import { createOIDCNonce } from "#lib/oidc-nonce";
 
   const currentUser = $derived(user());
@@ -17,6 +18,8 @@
   let linkingId = $state<string | null>(null);
 
   let hasPassword = $state<boolean | null>(null);
+  let passwordLoading = $state(true);
+  let providersLoading = $state(true);
   let newPassword = $state("");
   let confirmPassword = $state("");
   let savingPassword = $state(false);
@@ -75,7 +78,8 @@
     trpc.passwordStatus
       .query()
       .then((res: { hasPassword: boolean }) => (hasPassword = res.hasPassword))
-      .catch(() => (hasPassword = null));
+      .catch(() => (hasPassword = null))
+      .finally(() => (passwordLoading = false));
     try {
       const [list, identities] = await Promise.all([
         trpc.oidcProviders.query(),
@@ -85,6 +89,8 @@
       linkedIssuers = identities.map((i: { issuer: string }) => i.issuer);
     } catch (error: any) {
       toast.error(error.message || "Failed to load linked accounts");
+    } finally {
+      providersLoading = false;
     }
   });
 
@@ -197,6 +203,10 @@
         </div>
       {/snippet}
       {@render panel("Profile Details", "heroicons:identification", detailsBody)}
+
+      {#if passwordLoading || providersLoading}
+        <div class="flex justify-center py-4"><Loading /></div>
+      {/if}
 
       {#if hasPassword === false}
         {#snippet passwordBody()}

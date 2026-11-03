@@ -2,20 +2,23 @@ import { browser } from "$app/env";
 
 type Theme = "light" | "dark";
 
+const LIGHT: Theme = "light";
+const DARK: Theme = "dark";
+
 class ThemeStore {
-  theme = $state<Theme>("light");
+  theme = $state<Theme>(LIGHT);
 
   constructor() {
     if (browser) {
       // Load theme from localStorage or default to light
       const stored = localStorage.getItem("theme") as Theme | null;
-      this.theme = stored || "light";
+      this.theme = stored || LIGHT;
       this.applyTheme(this.theme);
     }
   }
 
   toggle() {
-    this.theme = this.theme === "light" ? "dark" : "light";
+    this.theme = this.theme === LIGHT ? DARK : LIGHT;
     this.applyTheme(this.theme);
     if (browser) {
       localStorage.setItem("theme", this.theme);
