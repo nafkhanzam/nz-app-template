@@ -13,10 +13,8 @@
   const resourceLinks = [{ label: "Nafkhanzam Website", href: "https://www.nafkhanzam.com" }];
 </script>
 
-<footer class="relative bg-base-100 shadow-[0_-4px_16px_-2px_rgb(0_0_0/0.12)]">
-  <div
-    class="footer container mx-auto grid grid-cols-2 gap-8 p-10 text-base-content md:grid-cols-4"
-  >
+<footer class="relative bg-black shadow-[0_-4px_16px_-2px_rgb(0_0_0/0.12)]">
+  <div class="footer container mx-auto grid grid-cols-2 gap-8 p-10 text-white md:grid-cols-4">
     <nav>
       <h6 class="footer-title">Quick Links</h6>
       {#each quickLinks as link (link.label)}
@@ -39,9 +37,9 @@
     </nav>
   </div>
 </footer>
-<footer class="border-t border-base-content/10 bg-base-100">
+<footer class="border-t border-white/10 bg-black">
   <div
-    class="container mx-auto flex flex-col items-center justify-between gap-4 px-10 py-4 text-base-content md:flex-row"
+    class="container mx-auto flex flex-col items-center justify-between gap-4 px-10 py-4 text-white md:flex-row"
   >
     <aside class="flex items-center gap-4">
       <img src={favicon} alt="" class="h-6 w-6" />
